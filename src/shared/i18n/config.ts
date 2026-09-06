@@ -35,3 +35,18 @@ export const LOCALE_META = {
 export function getLocaleDir(locale: Locale): "rtl" | "ltr" {
   return LOCALE_META[locale].dir;
 }
+
+/**
+ * Narrows an unvalidated route segment to a Locale.
+ *
+ * Needed because the proxy's matcher skips any path containing a dot, so a
+ * request for `/favicon.ico` or `/robots.txt` reaches the `[locale]` route with
+ * `locale = "favicon.ico"`. The root layout calls notFound() for that, but a
+ * page renders concurrently with its layout — so a page that indexes
+ * LOCALE_META directly crashes before the 404 takes effect.
+ *
+ * Any page that reads LOCALE_META should go through this.
+ */
+export function isLocale(value: string): value is Locale {
+  return value === "ar" || value === "en";
+}

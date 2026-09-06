@@ -14,7 +14,14 @@
     "search": "Search",
     "actions": "Actions",
     "noResults": "No results",
-    "required": "This field is required"
+    "required": "This field is required",
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "suspended": "Suspended",
+      "rejected": "Rejected"
+    },
+    "backToHome": "Back to home"
   },
   "devKitchenSink": {
     "title": "UI kitchen sink",
@@ -111,6 +118,171 @@
       "resultBody": "The image is stored on Cloudinary and rendered through an f_auto,q_auto transformation URL.",
       "failed": "Upload failed",
       "notAnImage": "The selected file is not an image."
+    }
+  },
+  "auth": {
+    "signOut": "Sign out",
+    "fields": {
+      "email": "Email address",
+      "password": "Password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "passwordHint": "At least 10 characters, with an upper- and lower-case letter and a digit.",
+      "fullName": "Full name",
+      "phone": "Phone number",
+      "agencyName": "Agency name",
+      "countryCode": "Country code",
+      "countryCodeHint": "Two letters, e.g. EG",
+      "city": "City",
+      "commercialRegNo": "Commercial registration no.",
+      "taxId": "Tax ID"
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Access your agency account.",
+      "submit": "Sign in",
+      "forgotPassword": "Forgotten your password?",
+      "noAccount": "No account yet?",
+      "registerLink": "Register your agency"
+    },
+    "register": {
+      "title": "Register an agency",
+      "subtitle": "Create your agency account. Our team reviews each request before activating it.",
+      "companySection": "Agency details",
+      "contactSection": "Primary contact",
+      "acceptTerms": "I accept the terms of use and the privacy policy.",
+      "submit": "Submit registration",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Sign in"
+    },
+    "registerSubmitted": {
+      "title": "Registration received",
+      "checkEmail": "We have sent a confirmation email. Open it to verify your address.",
+      "step1": "Confirm your email address from the message we sent.",
+      "step2": "Our team reviews your agency details.",
+      "step3": "Once approved, you can sign in and start using the platform.",
+      "backToLogin": "Back to sign in"
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email address and we will send you a reset link.",
+      "submit": "Send reset link",
+      "sent": "If that address is registered with us, we have sent it a reset link.",
+      "backToLogin": "Back to sign in"
+    },
+    "resetPassword": {
+      "title": "Choose a new password",
+      "subtitle": "Set a new password for your account.",
+      "submit": "Save password",
+      "done": "Your password has been changed. You can sign in now."
+    },
+    "authError": {
+      "title": "This link is not valid",
+      "expired": "The link has expired or has already been used.",
+      "invalid": "That link is not valid.",
+      "requestNew": "Request a new link",
+      "backToLogin": "Back to sign in"
+    },
+    "pending": {
+      "accountEmail": "Email address",
+      "companyName": "Agency",
+      "reference": "Reference",
+      "pending": {
+        "title": "Your account is under review",
+        "body": "We have received your agency registration and are reviewing it. We will email you as soon as it is approved."
+      },
+      "rejected": {
+        "title": "Registration not approved",
+        "body": "Your agency registration was not approved. Please contact us for details."
+      },
+      "suspended": {
+        "title": "Account suspended",
+        "body": "This account has been suspended. Please contact the administrator to restore it."
+      },
+      "active": {
+        "title": "Account active",
+        "body": "Your account is active."
+      }
+    },
+    "validation": {
+      "emailRequired": "Email address is required.",
+      "emailInvalid": "That does not look like a valid email address.",
+      "passwordRequired": "Password is required.",
+      "passwordTooShort": "Password must be at least 10 characters.",
+      "passwordTooLong": "That password is too long.",
+      "passwordNeedsCase": "Include both an upper- and a lower-case letter.",
+      "passwordNeedsDigit": "Include at least one digit.",
+      "passwordsDoNotMatch": "The two passwords do not match.",
+      "nameRequired": "Your name is required.",
+      "agencyNameRequired": "Agency name is required.",
+      "phoneInvalid": "That phone number is not valid.",
+      "countryRequired": "A two-letter country code is required.",
+      "mustAcceptTerms": "You must accept the terms to continue."
+    },
+    "errors": {
+      "invalidCredentials": "That email address or password is incorrect.",
+      "invalidInput": "Please check the details you entered.",
+      "emailTaken": "That email address is already registered.",
+      "rateLimited": "Too many attempts. Please wait a moment and try again.",
+      "registrationFailed": "We could not complete your registration. Please try again.",
+      "resetLinkExpired": "That reset link has expired. Please request a new one.",
+      "passwordUpdateFailed": "We could not change your password. Please try again."
+    }
+  },
+  "agent": {
+    "dashboard": {
+      "greeting": "Welcome, {name}",
+      "subtitle": "Your agency dashboard.",
+      "company": {
+        "title": "Agency details",
+        "name": "Name",
+        "reference": "Reference",
+        "status": "Status"
+      },
+      "credit": {
+        "title": "Credit account",
+        "description": "The credit limit set for your agency by the administrator.",
+        "limit": "Credit limit",
+        "balancePending": "Your running balance is derived from the payments ledger and appears here when the finance module ships (Phase 5)."
+      },
+      "upcoming": {
+        "title": "Coming modules",
+        "description": "Not available yet — listed here for clarity.",
+        "search": {
+          "title": "Hotel search & booking",
+          "phase": "Phases 3–4"
+        },
+        "bookings": {
+          "title": "Booking history & quotations",
+          "phase": "Phases 4–5"
+        },
+        "statement": {
+          "title": "Statement of account & invoices",
+          "phase": "Phase 5"
+        }
+      }
+    }
+  },
+  "admin": {
+    "backOffice": "Back office",
+    "dashboard": {
+      "greeting": "Welcome, {name}",
+      "subtitle": "System overview.",
+      "stats": {
+        "pendingRequests": "Pending registration requests",
+        "accessModel": "Access model",
+        "rolesAndPermissions": "{roles} roles · {permissions} permissions"
+      },
+      "requests": {
+        "title": "Agency registration requests",
+        "description": "Requests awaiting review. Approving and rejecting arrive in Phase 2.",
+        "colReference": "Reference",
+        "colCompany": "Agency",
+        "colEmail": "Email",
+        "colCountry": "Country",
+        "empty": "No requests are awaiting review.",
+        "noPermission": "You do not have permission to view agencies."
+      }
     }
   }
 }

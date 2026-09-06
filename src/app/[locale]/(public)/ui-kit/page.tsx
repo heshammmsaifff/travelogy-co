@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { notFound } from "next/navigation";
 import { LuBuilding2, LuPlus, LuSearch } from "react-icons/lu";
-import { LOCALE_META, type Locale } from "@/shared/i18n/config";
+import { isLocale, LOCALE_META } from "@/shared/i18n/config";
 import { formatCurrency, formatDate, formatNumber } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
@@ -61,8 +62,10 @@ const STATUS_LABEL_KEYS = {
   cancelled: "table.statusCancelled",
 } as const;
 
-export default async function UiKitPage({ params }: { params: Promise<{ locale: Locale }> }) {
+export default async function UiKitPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  // See isLocale(): a dotted path such as /favicon.ico reaches this route.
+  if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
 
   const t = await getTranslations("devKitchenSink");

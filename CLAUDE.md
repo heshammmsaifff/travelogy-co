@@ -329,9 +329,30 @@ Requested by the client after reviewing Phase 0, and folded into the sections ab
 | 1.9 | **Lockout protection is a database trigger.** `super_admin` cannot be deleted or stripped of permissions, and the last active `super_admin` cannot be demoted or suspended. No role can grant a permission its holder lacks. | An access-control system that can lock its owner out, or that lets `settings.roles.manage` escalate to full access, is a defect rather than a configuration mistake. |
 | 1.10 | **Phases renumbered.** With gateway integration removed: Phase 9 is now External supplier expansion (was 10) and Phase 10 is Hardening/testing/launch (was 11). Code comments referencing Phase 11 were updated. | A hole in the phase list reads as an error to a fresh session. Renumbering now, while only Phase 0 exists, costs almost nothing. |
 
+### Phase 1 (database & auth foundation) — decided 2026-09-06
+
+| # | Decision | Rationale |
+|---|---|---|
+| 2.1 | **`has_permission()` and the protection triggers were built in Phase 1, not Phase 2.** Phase 2 keeps the management *UI*. | §13 lists them under Phase 2, but §7 rule 1 forbids RLS policies from comparing role names — so Phase 1's policies could not be written without the resolver. Shipping the schema without the lockout and escalation triggers would have meant a window where the guarantees in §7 were documented but not enforced. |
+| 2.2 | **The agent's running balance is not a column.** `agencies` holds `credit_limit` only. | §10 says the balance is derived from the payments ledger. A `balance` column in Phase 1 would be a number nothing maintains — exactly the fake-completeness §2.3 prohibits. The agent dashboard says so on screen rather than showing a misleading zero. |
+| 2.3 | **Self-registration always produces `agent_owner` + `pending`, ignoring signup metadata.** | `raw_user_meta_data` is client-controlled. Verified: an account created with `role_key: super_admin` and `status: active` in its metadata still lands as a pending agent. |
+| 2.4 | **The first super admin is created by `bootstrap_super_admin(email)`**, which refuses to run once any active super admin exists. | Seeding an admin account in a migration would mean committing a password. This promotes an already-registered user, and self-disables so it cannot become a back door. |
+| 2.5 | **Auth forms use Server Actions + `useActionState`, not React Hook Form.** | §3 specifies RHF + Zod, and the longer forms in later phases will use it. On auth screens progressive enhancement matters more: a plain form works before JavaScript loads. The same Zod schemas still run server-side, which is what §12 actually requires. |
+| 2.6 | **Route guarding is split: the proxy checks for a session, the layouts check role and status.** | §6 puts guards in the proxy. A full role check there would cost a database round trip on every navigation (§11), whereas the layouts must load the profile anyway to render their header. The proxy stops anonymous traffic; the layouts route people to the right side. |
+| 2.7 | **Email is denormalised onto `profiles`** and kept in sync by a trigger on `auth.users`. | Admin screens need to search and sort by email; reading `auth.users` for that would require the service role on an ordinary listing page. |
+| 2.8 | **Agencies and profiles are never deleted, only suspended.** No DELETE policy exists on either table. | Bookings, invoices and audit rows must keep pointing at a real company and a real person. |
+
+**Security issues found by the Phase 1 verification suite and fixed before the phase closed:**
+- `write_audit` was exposed as a PostgREST RPC, so any signed-in user could have forged audit-log entries. All SECURITY DEFINER functions are now revoked from `anon`/`authenticated` except the four that RLS policies evaluate as the caller (migration `20260906190400`).
+- **Privilege escalation:** the profile guard only checked `auth.uid() = new.id`, so an agency owner holding `agency_users.manage` could set one of their own sub-users' role to `super_admin`. Confirmed exploitable, then fixed (migration `20260906190500`). The guard now covers every row and every field.
+- **Self-serve credit:** `agencies_update` granted the owner their whole row, so they could raise their own `credit_limit` (verified: 0 -> 999,999) and flip their own status. RLS grants rows, not columns — a column-level trigger now protects credit, status, code and the approval trail.
+
+**Operational blocker for real registrations (needs the client's action):**
+Supabase's built-in SMTP is rate-limited to a handful of emails per hour and is not intended for production. Registration depends on email confirmation, so a custom SMTP provider must be configured in the Supabase dashboard (Authentication -> Emails) before real agents can sign up. This is configuration, not code.
+
 **Known gaps deliberately left open at the end of Phase 0:**
-- `POST /api/media/signature` is **unauthenticated** — Supabase Auth does not exist until Phase 1. Mitigated by a rate limit and a server-pinned upload folder. **Phase 1 must add a session check before any real media feature ships in Phase 3.**
+- ~~`POST /api/media/signature` is unauthenticated~~ — **closed in Phase 1**: it now requires an active session and is rate-limited per user id.
 - `src/shared/lib/rate-limit.ts` is in-memory and per-instance. Adequate for now; Phase 10 replaces it with a shared store.
-- `src/shared/types/database.ts` is a placeholder for an empty schema. Phase 1 regenerates it via `npm run db:types`.
+- ~~`src/shared/types/database.ts` is a placeholder~~ — **closed in Phase 1**: generated from the live schema via `npm run db:types`.
 - `/[locale]/ui-kit` is an internal verification page and should be excluded from the production build in Phase 10.
-- The Supabase CLI one-time setup (`npx supabase login` / `link`, §4) has **not** been done yet — it needs a human and must happen before Phase 1's first migration.
+- ~~The Supabase CLI one-time setup has not been done~~ — **done**: the repo is linked to project `yngfurepjssbssrrbgkb` and all Phase 1 migrations were applied with `supabase db push`.

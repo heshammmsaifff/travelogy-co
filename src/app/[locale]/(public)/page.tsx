@@ -1,7 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { notFound } from "next/navigation";
 import { LuArrowLeft, LuArrowRight } from "react-icons/lu";
 import { Link } from "@/shared/i18n/navigation";
-import { LOCALE_META, type Locale } from "@/shared/i18n/config";
+import { isLocale, LOCALE_META } from "@/shared/i18n/config";
 import { Button } from "@/shared/ui/button";
 import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 
@@ -12,8 +13,11 @@ import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
  * (CLAUDE.md §13). This page exists so Phase 0's foundation — locale routing,
  * direction switching, fonts, tokens and primitives — is visibly working.
  */
-export default async function HomePage({ params }: { params: Promise<{ locale: Locale }> }) {
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  // A page renders concurrently with its layout, so the layout's notFound()
+  // does not protect this from `/favicon.ico` arriving as a "locale".
+  if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
 
   const t = await getTranslations();
