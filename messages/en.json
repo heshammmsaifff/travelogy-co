@@ -21,7 +21,9 @@
       "suspended": "Suspended",
       "rejected": "Rejected"
     },
-    "backToHome": "Back to home"
+    "backToHome": "Back to home",
+    "previous": "Previous",
+    "next": "Next"
   },
   "devKitchenSink": {
     "title": "UI kitchen sink",
@@ -226,7 +228,14 @@
       "rateLimited": "Too many attempts. Please wait a moment and try again.",
       "registrationFailed": "We could not complete your registration. Please try again.",
       "resetLinkExpired": "That reset link has expired. Please request a new one.",
-      "passwordUpdateFailed": "We could not change your password. Please try again."
+      "passwordUpdateFailed": "We could not change your password. Please try again.",
+      "sessionExpired": "Your session has expired. Please sign in again."
+    },
+    "changePassword": {
+      "title": "Change your password",
+      "subtitle": "Choose a new password before you continue.",
+      "why": "Your account was created with a temporary password that the person who created it has seen. Change it now so it is known only to you.",
+      "submit": "Save and continue"
     }
   },
   "agent": {
@@ -283,6 +292,238 @@
         "empty": "No requests are awaiting review.",
         "noPermission": "You do not have permission to view agencies."
       }
+    },
+    "nav": {
+      "label": "Back-office sections",
+      "overview": "Overview",
+      "agencies": "Agencies",
+      "staff": "Staff",
+      "roles": "Roles & permissions",
+      "audit": "Audit log"
     }
+  },
+  "access": {
+    "forbidden": {
+      "title": "You do not have access",
+      "body": "Your account does not hold the permission needed for this page. Ask a super admin if you need it."
+    },
+    "errors": {
+      "forbidden": "You do not have permission to do that.",
+      "refused": "The operation was refused",
+      "invalidInput": "Please check the details you entered.",
+      "roleKeyTaken": "That key is already used by another role.",
+      "roleNotFound": "Role not found.",
+      "roleInUse": "A role assigned to users cannot be deleted. Move those users to another role first.",
+      "createRoleFailed": "Could not create the role.",
+      "updateRoleFailed": "Could not update the role.",
+      "deleteRoleFailed": "Could not delete the role.",
+      "updatePermissionsFailed": "Could not save the permissions.",
+      "superAdminImplicit": "Super admin permissions are implicit and cannot be edited.",
+      "cannotGrantUnheld": "You cannot grant a permission you do not hold yourself.",
+      "roleNotAdmin": "That is not a back-office role.",
+      "cannotCreateSuperAdmin": "A super admin account cannot be created here.",
+      "emailTaken": "That email address is already registered.",
+      "createStaffFailed": "Could not create the account.",
+      "updateStaffFailed": "Could not update the account."
+    },
+    "roles": {
+      "title": "Roles & permissions",
+      "description": "Create back-office roles and decide exactly what each one may do.",
+      "listTitle": "Roles",
+      "create": "New role",
+      "createTitle": "Create a role",
+      "createDescription": "A new role starts with no permissions; you assign them next.",
+      "created": "Role created.",
+      "updated": "Role saved.",
+      "deleted": "Role deleted.",
+      "permissionsUpdated": "Permissions saved.",
+      "colName": "Name",
+      "colKey": "Key",
+      "colScope": "Scope",
+      "colPermissions": "Permissions",
+      "colUsers": "Users",
+      "systemRole": "System role",
+      "allPermissions": "All",
+      "empty": "No roles yet.",
+      "scope": {
+        "admin": "Back office",
+        "agent": "Agents"
+      },
+      "editLabel": "Edit the {name} role",
+      "deleteLabel": "Delete the {name} role",
+      "deleteConfirmTitle": "Delete this role?",
+      "deleteConfirmBody": "The role and all of its permissions will be removed. This cannot be undone.",
+      "backToList": "Back to roles",
+      "detailsTitle": "Role details",
+      "detailsDescription": "The name and description as they appear in both languages.",
+      "permissionsTitle": "Permissions",
+      "permissionsDescription": "Choose what this role may do. Permissions you do not hold yourself are shown disabled.",
+      "superAdminImplicit": "Super admin holds every permission implicitly, so these cannot be edited.",
+      "fields": {
+        "key": "Key",
+        "keyHint": "Lower-case letters and underscores. Cannot be changed later.",
+        "nameAr": "Name (Arabic)",
+        "nameEn": "Name (English)",
+        "descriptionAr": "Description (Arabic)",
+        "descriptionEn": "Description (English)"
+      }
+    },
+    "permissions": {
+      "cannotGrant": "You cannot grant a permission you do not hold yourself.",
+      "modules": {
+        "agencies": "Agencies",
+        "agency_users": "Agency users",
+        "staff": "Staff",
+        "settings": "Settings",
+        "audit": "Audit"
+      }
+    },
+    "staff": {
+      "title": "Back-office staff",
+      "description": "Create staff accounts and assign their roles.",
+      "listTitle": "Staff",
+      "create": "Add staff",
+      "createTitle": "Add a staff account",
+      "createDescription": "The account is created with a temporary password, shown to you once.",
+      "created": "Account created.",
+      "createdTitle": "Account created",
+      "secretWarning": "This temporary password is shown once and cannot be retrieved. Pass it to the new user securely — they will be asked to change it at first sign-in.",
+      "secretAcknowledge": "I have saved it, close",
+      "copy": "Copy",
+      "copied": "Copied.",
+      "copyManually": "Could not copy automatically. Select the text and copy it manually.",
+      "colName": "Name",
+      "colEmail": "Email",
+      "colRole": "Role",
+      "colStatus": "Status",
+      "colCreated": "Created",
+      "empty": "No staff accounts yet.",
+      "you": "You",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "suspended": "Account suspended.",
+      "reactivated": "Account reactivated.",
+      "roleUpdated": "Role updated.",
+      "suspendConfirmTitle": "Suspend this account?",
+      "suspendConfirmBody": "{name} will not be able to sign in until the account is reactivated.",
+      "changeRoleFor": "Change the role for {name}",
+      "selectRole": "Select a role",
+      "fields": {
+        "fullName": "Full name",
+        "email": "Email address",
+        "role": "Role"
+      }
+    }
+  },
+  "agencies": {
+    "title": "Agencies",
+    "description": "Registration requests, active agencies and their credit limits.",
+    "listTitle": "All agencies",
+    "listCount": "{count} agencies",
+    "empty": "No agencies match those filters.",
+    "backToList": "Back to agencies",
+    "colReference": "Reference",
+    "colName": "Agency",
+    "colStatus": "Status",
+    "colCreditLimit": "Credit limit",
+    "colUsers": "Users",
+    "colCreated": "Registered",
+    "pageOf": "Page {page} of {total}",
+    "registeredOn": "Registered",
+    "approvedOn": "Approved",
+    "rejectedOn": "Rejected on {date}",
+    "approved": "Agency approved.",
+    "rejected": "Registration rejected.",
+    "suspended": "Agency suspended.",
+    "reactivated": "Agency reactivated.",
+    "updated": "Agency details saved.",
+    "creditLimitUpdated": "Credit limit updated.",
+    "filters": {
+      "all": "All",
+      "searchLabel": "Search agencies",
+      "searchPlaceholder": "Search by name, reference or email"
+    },
+    "actions": {
+      "title": "Actions",
+      "description": "Change this agency's status.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "approveConfirmTitle": "Approve this agency?",
+      "approveConfirmBody": "The agency will be activated, along with any user accounts waiting on approval.",
+      "rejectTitle": "Reject this registration",
+      "rejectDescription": "The reason is kept on the agency record.",
+      "rejectReason": "Reason for rejection",
+      "rejectReasonHint": "At least 5 characters.",
+      "suspendConfirmTitle": "Suspend this agency?",
+      "suspendConfirmBody": "No user of this agency will be able to sign in until it is reactivated."
+    },
+    "credit": {
+      "title": "Credit account",
+      "description": "The ceiling this agency may book against.",
+      "limitLabel": "Credit limit ({currency})",
+      "limitHint": "Set to zero to prevent booking on credit.",
+      "ledgerNote": "The running balance is derived from the payments ledger and appears when the finance module ships (Phase 5)."
+    },
+    "summary": {
+      "title": "Summary"
+    },
+    "profile": {
+      "title": "Agency profile",
+      "description": "Edit this agency's descriptive details."
+    },
+    "members": {
+      "title": "Agency users",
+      "description": "Accounts belonging to this agency.",
+      "colName": "Name",
+      "colEmail": "Email",
+      "colRole": "Role",
+      "colStatus": "Status",
+      "empty": "No users yet."
+    },
+    "fields": {
+      "name": "Agency name",
+      "legalName": "Legal name",
+      "phone": "Phone",
+      "website": "Website",
+      "countryCode": "Country code",
+      "city": "City",
+      "address": "Address",
+      "commercialRegNo": "Commercial registration no.",
+      "taxId": "Tax ID",
+      "email": "Email",
+      "country": "Country"
+    },
+    "validation": {
+      "reasonRequired": "A reason of at least 5 characters is required.",
+      "reasonTooLong": "That reason is too long.",
+      "nameRequired": "Agency name is required.",
+      "creditLimitInvalid": "That is not a valid credit limit.",
+      "creditLimitNegative": "The credit limit cannot be negative.",
+      "creditLimitTooLarge": "That value is larger than allowed."
+    },
+    "errors": {
+      "approveFailed": "Could not approve the agency.",
+      "rejectFailed": "Could not reject the registration.",
+      "reasonRequired": "A rejection reason is required.",
+      "statusFailed": "Could not change the status.",
+      "creditLimitInvalid": "That is not a valid credit limit.",
+      "creditLimitFailed": "Could not update the credit limit.",
+      "updateFailed": "Could not save the details."
+    }
+  },
+  "audit": {
+    "title": "Audit log",
+    "description": "An unalterable record of every change to roles, permissions, statuses and credit limits.",
+    "listTitle": "Events",
+    "listCount": "{count} events",
+    "colWhen": "When",
+    "colActor": "Actor",
+    "colAction": "Action",
+    "colDetails": "Details",
+    "empty": "No events recorded yet.",
+    "systemActor": "System",
+    "pageOf": "Page {page} of {total}"
   }
 }

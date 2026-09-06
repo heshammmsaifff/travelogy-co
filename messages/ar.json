@@ -21,7 +21,9 @@
       "suspended": "موقوف",
       "rejected": "مرفوض"
     },
-    "backToHome": "العودة للرئيسية"
+    "backToHome": "العودة للرئيسية",
+    "previous": "السابق",
+    "next": "التالي"
   },
   "devKitchenSink": {
     "title": "معمل مكوّنات الواجهة",
@@ -226,7 +228,14 @@
       "rateLimited": "محاولات كثيرة جدًا. من فضلك انتظر قليلًا ثم أعد المحاولة.",
       "registrationFailed": "تعذّر إتمام التسجيل. حاول مرة أخرى.",
       "resetLinkExpired": "انتهت صلاحية رابط إعادة التعيين. اطلب رابطًا جديدًا.",
-      "passwordUpdateFailed": "تعذّر تغيير كلمة المرور. حاول مرة أخرى."
+      "passwordUpdateFailed": "تعذّر تغيير كلمة المرور. حاول مرة أخرى.",
+      "sessionExpired": "انتهت الجلسة. سجّل الدخول مرة أخرى."
+    },
+    "changePassword": {
+      "title": "تغيير كلمة المرور",
+      "subtitle": "اختر كلمة مرور جديدة قبل متابعة استخدام النظام.",
+      "why": "تم إنشاء حسابك بكلمة مرور مؤقتة يعرفها من أنشأه. غيّرها الآن لتصبح خاصة بك وحدك.",
+      "submit": "حفظ ومتابعة"
     }
   },
   "agent": {
@@ -283,6 +292,238 @@
         "empty": "لا توجد طلبات قيد المراجعة.",
         "noPermission": "ليس لديك صلاحية عرض الوكالات."
       }
+    },
+    "nav": {
+      "label": "أقسام الإدارة",
+      "overview": "نظرة عامة",
+      "agencies": "الوكالات",
+      "staff": "الموظفون",
+      "roles": "الأدوار والصلاحيات",
+      "audit": "سجل التدقيق"
     }
+  },
+  "access": {
+    "forbidden": {
+      "title": "لا تملك صلاحية الوصول",
+      "body": "حسابك لا يملك الصلاحية اللازمة لعرض هذه الصفحة. تواصل مع المدير العام إن كنت تحتاجها."
+    },
+    "errors": {
+      "forbidden": "لا تملك صلاحية تنفيذ هذا الإجراء.",
+      "refused": "تم رفض العملية",
+      "invalidInput": "من فضلك راجع البيانات المدخلة.",
+      "roleKeyTaken": "هذا المعرّف مستخدم بالفعل لدور آخر.",
+      "roleNotFound": "الدور غير موجود.",
+      "roleInUse": "لا يمكن حذف دور مرتبط بمستخدمين. انقل المستخدمين لدور آخر أولًا.",
+      "createRoleFailed": "تعذّر إنشاء الدور.",
+      "updateRoleFailed": "تعذّر تعديل الدور.",
+      "deleteRoleFailed": "تعذّر حذف الدور.",
+      "updatePermissionsFailed": "تعذّر حفظ الصلاحيات.",
+      "superAdminImplicit": "صلاحيات المدير العام ضمنية ولا تُعدّل.",
+      "cannotGrantUnheld": "لا يمكنك منح صلاحية لا تملكها أنت.",
+      "roleNotAdmin": "هذا الدور ليس من أدوار الإدارة الخلفية.",
+      "cannotCreateSuperAdmin": "لا يمكن إنشاء حساب مدير عام من هنا.",
+      "emailTaken": "هذا البريد الإلكتروني مسجل بالفعل.",
+      "createStaffFailed": "تعذّر إنشاء الحساب.",
+      "updateStaffFailed": "تعذّر تعديل الحساب."
+    },
+    "roles": {
+      "title": "الأدوار والصلاحيات",
+      "description": "أنشئ أدوارًا للإدارة الخلفية وحدّد بدقة ما يمكن لكل دور فعله.",
+      "listTitle": "الأدوار",
+      "create": "دور جديد",
+      "createTitle": "إنشاء دور جديد",
+      "createDescription": "الدور الجديد يبدأ بدون أي صلاحيات؛ تحددها بعد الإنشاء.",
+      "created": "تم إنشاء الدور.",
+      "updated": "تم حفظ بيانات الدور.",
+      "deleted": "تم حذف الدور.",
+      "permissionsUpdated": "تم حفظ الصلاحيات.",
+      "colName": "الاسم",
+      "colKey": "المعرّف",
+      "colScope": "النطاق",
+      "colPermissions": "الصلاحيات",
+      "colUsers": "المستخدمون",
+      "systemRole": "دور نظام",
+      "allPermissions": "الكل",
+      "empty": "لا توجد أدوار.",
+      "scope": {
+        "admin": "الإدارة الخلفية",
+        "agent": "الوكلاء"
+      },
+      "editLabel": "تعديل الدور {name}",
+      "deleteLabel": "حذف الدور {name}",
+      "deleteConfirmTitle": "حذف هذا الدور؟",
+      "deleteConfirmBody": "سيتم حذف الدور وجميع صلاحياته. لا يمكن التراجع عن هذا الإجراء.",
+      "backToList": "العودة لقائمة الأدوار",
+      "detailsTitle": "بيانات الدور",
+      "detailsDescription": "الاسم والوصف كما يظهران في الواجهة بلغتيها.",
+      "permissionsTitle": "الصلاحيات",
+      "permissionsDescription": "حدّد ما يمكن لهذا الدور فعله. الصلاحيات التي لا تملكها أنت تظهر معطّلة.",
+      "superAdminImplicit": "المدير العام يملك كل الصلاحيات ضمنيًا، فلا يمكن تعديلها.",
+      "fields": {
+        "key": "المعرّف",
+        "keyHint": "أحرف إنجليزية صغيرة وشرطة سفلية. لا يمكن تغييره لاحقًا.",
+        "nameAr": "الاسم بالعربية",
+        "nameEn": "الاسم بالإنجليزية",
+        "descriptionAr": "الوصف بالعربية",
+        "descriptionEn": "الوصف بالإنجليزية"
+      }
+    },
+    "permissions": {
+      "cannotGrant": "لا يمكنك منح صلاحية لا تملكها أنت.",
+      "modules": {
+        "agencies": "الوكالات",
+        "agency_users": "مستخدمو الوكالة",
+        "staff": "الموظفون",
+        "settings": "الإعدادات",
+        "audit": "التدقيق"
+      }
+    },
+    "staff": {
+      "title": "موظفو الإدارة الخلفية",
+      "description": "أنشئ حسابات الموظفين وحدّد أدوارهم.",
+      "listTitle": "الموظفون",
+      "create": "إضافة موظف",
+      "createTitle": "إضافة حساب موظف",
+      "createDescription": "سيُنشأ الحساب بكلمة مرور مؤقتة تظهر لك مرة واحدة.",
+      "created": "تم إنشاء الحساب.",
+      "createdTitle": "تم إنشاء الحساب",
+      "secretWarning": "هذه كلمة المرور المؤقتة، وتظهر مرة واحدة فقط. سلّمها للموظف بوسيلة آمنة — سيُطلب منه تغييرها عند أول دخول.",
+      "secretAcknowledge": "حفظتها، إغلاق",
+      "copy": "نسخ",
+      "copied": "تم النسخ.",
+      "copyManually": "تعذّر النسخ التلقائي. حدّد النص وانسخه يدويًا.",
+      "colName": "الاسم",
+      "colEmail": "البريد الإلكتروني",
+      "colRole": "الدور",
+      "colStatus": "الحالة",
+      "colCreated": "تاريخ الإنشاء",
+      "empty": "لا يوجد موظفون بعد.",
+      "you": "أنت",
+      "suspend": "تعليق",
+      "reactivate": "إعادة تفعيل",
+      "suspended": "تم تعليق الحساب.",
+      "reactivated": "تم إعادة تفعيل الحساب.",
+      "roleUpdated": "تم تغيير الدور.",
+      "suspendConfirmTitle": "تعليق هذا الحساب؟",
+      "suspendConfirmBody": "لن يتمكن {name} من الدخول حتى يُعاد تفعيل الحساب.",
+      "changeRoleFor": "تغيير دور {name}",
+      "selectRole": "اختر دورًا",
+      "fields": {
+        "fullName": "الاسم بالكامل",
+        "email": "البريد الإلكتروني",
+        "role": "الدور"
+      }
+    }
+  },
+  "agencies": {
+    "title": "الوكالات",
+    "description": "طلبات التسجيل والوكالات المفعّلة وحدودها الائتمانية.",
+    "listTitle": "قائمة الوكالات",
+    "listCount": "{count} وكالة",
+    "empty": "لا توجد وكالات مطابقة.",
+    "backToList": "العودة لقائمة الوكالات",
+    "colReference": "المرجع",
+    "colName": "الوكالة",
+    "colStatus": "الحالة",
+    "colCreditLimit": "الحد الائتماني",
+    "colUsers": "المستخدمون",
+    "colCreated": "تاريخ التسجيل",
+    "pageOf": "صفحة {page} من {total}",
+    "registeredOn": "تاريخ التسجيل",
+    "approvedOn": "تاريخ الموافقة",
+    "rejectedOn": "تم الرفض في {date}",
+    "approved": "تمت الموافقة على الوكالة.",
+    "rejected": "تم رفض الطلب.",
+    "suspended": "تم تعليق الوكالة.",
+    "reactivated": "تم إعادة تفعيل الوكالة.",
+    "updated": "تم حفظ بيانات الوكالة.",
+    "creditLimitUpdated": "تم تحديث الحد الائتماني.",
+    "filters": {
+      "all": "الكل",
+      "searchLabel": "بحث في الوكالات",
+      "searchPlaceholder": "ابحث بالاسم أو المرجع أو البريد"
+    },
+    "actions": {
+      "title": "إجراءات",
+      "description": "تغيير حالة هذه الوكالة.",
+      "approve": "موافقة",
+      "reject": "رفض",
+      "suspend": "تعليق",
+      "reactivate": "إعادة تفعيل",
+      "approveConfirmTitle": "الموافقة على هذه الوكالة؟",
+      "approveConfirmBody": "سيتم تفعيل الوكالة وتفعيل حسابات المستخدمين المعلّقة على الموافقة.",
+      "rejectTitle": "رفض طلب التسجيل",
+      "rejectDescription": "سبب الرفض يُحفظ في سجل الوكالة.",
+      "rejectReason": "سبب الرفض",
+      "rejectReasonHint": "5 أحرف على الأقل.",
+      "suspendConfirmTitle": "تعليق هذه الوكالة؟",
+      "suspendConfirmBody": "لن يتمكن أي مستخدم في هذه الوكالة من الدخول حتى يُعاد التفعيل."
+    },
+    "credit": {
+      "title": "الحساب الائتماني",
+      "description": "الحد الأقصى الذي يمكن للوكالة الحجز في حدوده.",
+      "limitLabel": "الحد الائتماني ({currency})",
+      "limitHint": "أدخل صفرًا لمنع الحجز الآجل.",
+      "ledgerNote": "الرصيد الجاري يُحتسب من سجل الدفعات، ويظهر عند إطلاق الوحدة المالية (المرحلة 5)."
+    },
+    "summary": {
+      "title": "ملخص"
+    },
+    "profile": {
+      "title": "بيانات الوكالة",
+      "description": "تعديل البيانات التعريفية للوكالة."
+    },
+    "members": {
+      "title": "مستخدمو الوكالة",
+      "description": "الحسابات المرتبطة بهذه الوكالة.",
+      "colName": "الاسم",
+      "colEmail": "البريد الإلكتروني",
+      "colRole": "الدور",
+      "colStatus": "الحالة",
+      "empty": "لا يوجد مستخدمون."
+    },
+    "fields": {
+      "name": "اسم الوكالة",
+      "legalName": "الاسم القانوني",
+      "phone": "رقم الهاتف",
+      "website": "الموقع الإلكتروني",
+      "countryCode": "رمز الدولة",
+      "city": "المدينة",
+      "address": "العنوان",
+      "commercialRegNo": "رقم السجل التجاري",
+      "taxId": "الرقم الضريبي",
+      "email": "البريد الإلكتروني",
+      "country": "الدولة"
+    },
+    "validation": {
+      "reasonRequired": "سبب الرفض مطلوب (5 أحرف على الأقل).",
+      "reasonTooLong": "السبب طويل جدًا.",
+      "nameRequired": "اسم الوكالة مطلوب.",
+      "creditLimitInvalid": "قيمة الحد الائتماني غير صحيحة.",
+      "creditLimitNegative": "لا يمكن أن يكون الحد الائتماني سالبًا.",
+      "creditLimitTooLarge": "القيمة أكبر من المسموح."
+    },
+    "errors": {
+      "approveFailed": "تعذّرت الموافقة.",
+      "rejectFailed": "تعذّر الرفض.",
+      "reasonRequired": "سبب الرفض مطلوب.",
+      "statusFailed": "تعذّر تغيير الحالة.",
+      "creditLimitInvalid": "قيمة الحد الائتماني غير صحيحة.",
+      "creditLimitFailed": "تعذّر تحديث الحد الائتماني.",
+      "updateFailed": "تعذّر حفظ البيانات."
+    }
+  },
+  "audit": {
+    "title": "سجل التدقيق",
+    "description": "سجل غير قابل للتعديل لكل تغيير في الأدوار والصلاحيات والحالات والحدود الائتمانية.",
+    "listTitle": "الأحداث",
+    "listCount": "{count} حدث",
+    "colWhen": "التوقيت",
+    "colActor": "المستخدم",
+    "colAction": "الإجراء",
+    "colDetails": "التفاصيل",
+    "empty": "لا توجد أحداث مسجّلة.",
+    "systemActor": "النظام",
+    "pageOf": "صفحة {page} من {total}"
   }
 }

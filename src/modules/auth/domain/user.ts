@@ -19,6 +19,14 @@ export type AuthenticatedUser = {
   status: UserStatus;
   preferredLocale: "ar" | "en";
 
+  /**
+   * True while the account still holds the temporary password an admin set for
+   * it. The back-office layout diverts to the change-password screen until the
+   * user replaces it, so an account never stays usable on a credential someone
+   * else has seen.
+   */
+  mustChangePassword: boolean;
+
   role: {
     id: string;
     /** Machine key — may be a custom role, so never assume it is a SystemRoleKey. */

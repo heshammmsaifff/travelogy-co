@@ -350,6 +350,26 @@ Requested by the client after reviewing Phase 0, and folded into the sections ab
 **Operational blocker for real registrations (needs the client's action):**
 Supabase's built-in SMTP is rate-limited to a handful of emails per hour and is not intended for production. Registration depends on email confirmation, so a custom SMTP provider must be configured in the Supabase dashboard (Authentication -> Emails) before real agents can sign up. This is configuration, not code.
 
+### Phase 2 (back-office core & access control) — decided 2026-09-06
+
+| # | Decision | Rationale |
+|---|---|---|
+| 3.1 | **An agency's status now gates its users' access.** `is_active_user()` and `has_permission()` both require the caller's agency (when they have one) to be active. | Phase 1 tracked the two independently, so an active owner of a suspended agency could still sign in and use the portal. Making it a property of the two resolver functions means every RLS policy inherited the fix at once, rather than each policy having to remember. |
+| 3.2 | **Suspending an agency leaves member profiles untouched.** | Because of 3.1 the suspension already locks everyone out. Cascading a status change onto each profile would destroy the record of who was *individually* suspended, and reactivating the company would silently reinstate them. |
+| 3.3 | **Approve/reject/suspend are SECURITY DEFINER RPCs, not client-side updates.** | Approving an agency has to activate the company *and* its pending owner. Two statements from the client could half-apply and leave an approved company nobody can sign in to. Each RPC re-checks the caller's permission itself, so it is a gate rather than an open door. |
+| 3.4 | **Staff accounts are created with a generated temporary password, shown once**, plus a `must_change_password` flag enforced by the back-office layout. | `inviteUserByEmail` is the better flow, but this project's Supabase SMTP is rate-limited to a handful of messages an hour (see the Phase 1 blocker), so an invite flow would fail silently in real use. The flag ensures an account never stays usable on a credential the creating admin has seen. **Switch to email invites once SMTP is configured.** |
+| 3.5 | **The audit trail is written by database triggers, not by the use-cases.** | A use-case can forget to log, and a direct SQL edit would leave no trace at all. Triggers on `roles`, `role_permissions`, `profiles` and `agencies` mean the record exists regardless of which path made the change. Permission changes are diffed, so the log records individual grants and revocations rather than a churn of every permission each time a box is ticked. |
+| 3.6 | **The agency status counts come from a `security_invoker` view**, not from counting rows in JavaScript. | §11 requires aggregation in Postgres. `security_invoker = on` is essential: without it the view would run as its owner and leak counts of agencies the caller cannot see. |
+| 3.7 | **`forbidden()` (via `experimental.authInterrupts`) rather than a 404** for a page the user lacks permission for. | A 404 would leave a staff member unable to tell whether they mistyped a URL or need access requesting. |
+| 3.8 | **Roles and staff management live in `modules/auth`; agency management in `modules/agencies`.** | §6's module list has no `staff` or `access` module. Roles, permissions and back-office users are all "who may do what", which is the auth module's concern. |
+| 3.9 | **List filters live in the URL, not component state.** | A filtered view is then shareable and survives a refresh, and the list pages stay Server Components with no client JavaScript (§11). |
+
+**Bug found by exercising the schema, and fixed in this phase:**
+`agencies.approved_by` is `on delete set null`, so deleting a back-office user makes Postgres issue its own `update agencies set approved_by = null`. The Phase 1 field-protection trigger refused that, which meant **once an admin had approved anything, their account could not be deleted at all**. Migration `20260906200200` treats "no authenticated user" as a system context, which is safe because every policy on `agencies` is scoped `to authenticated`.
+
+**Second configuration item for the client (alongside the SMTP blocker):**
+Supabase's leaked-password protection is disabled. Turning it on (Authentication -> Policies) checks new passwords against HaveIBeenPwned and costs nothing. Configuration, not code.
+
 **Known gaps deliberately left open at the end of Phase 0:**
 - ~~`POST /api/media/signature` is unauthenticated~~ — **closed in Phase 1**: it now requires an active session and is rate-limited per user id.
 - `src/shared/lib/rate-limit.ts` is in-memory and per-instance. Adequate for now; Phase 10 replaces it with a shared store.

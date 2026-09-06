@@ -5,6 +5,8 @@ import { Link } from "@/shared/i18n/navigation";
 import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 import { Badge } from "@/shared/ui/badge";
 import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
+import { can } from "@/modules/auth/domain/user";
+import { AdminNav, type AdminSection } from "@/modules/auth/presentation/admin-nav";
 import { SignOutButton } from "@/modules/auth/presentation/sign-out-button";
 
 /**
@@ -31,9 +33,20 @@ export default async function AdminLayout({
   if (!user) redirect(`/${locale}/login`);
   if (user.status !== "active") redirect(`/${locale}/pending`);
   if (user.role.scope !== "admin") redirect(`/${locale}/agent`);
+  // An account created by an admin starts on a temporary password that the
+  // admin has seen. It must be replaced before the account can be used.
+  if (user.mustChangePassword) redirect(`/${locale}/change-password`);
 
   const t = await getTranslations();
   const roleName = locale === "ar" ? user.role.nameAr : user.role.nameEn;
+
+  // Navigation is built from what this user may actually do, so a role without
+  // `settings.roles.manage` never sees a Roles tab it would be bounced from.
+  const sections: AdminSection[] = ["overview"];
+  if (can(user, "agencies.view")) sections.push("agencies");
+  if (can(user, "staff.view")) sections.push("staff");
+  if (can(user, "settings.roles.manage")) sections.push("roles");
+  if (can(user, "audit.view")) sections.push("audit");
 
   return (
     <div className="min-h-dvh">
@@ -53,6 +66,8 @@ export default async function AdminLayout({
           </div>
         </div>
       </header>
+
+      <AdminNav visible={sections} />
 
       {children}
     </div>

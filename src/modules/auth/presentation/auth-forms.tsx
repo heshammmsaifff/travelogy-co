@@ -7,6 +7,7 @@ import type { Locale } from "@/shared/i18n/config";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import {
+  changePasswordAction,
   requestPasswordResetAction,
   signInAction,
   registerAction,
@@ -243,6 +244,43 @@ export function ResetPasswordForm({ locale }: { locale: Locale }) {
       />
       <Button type="submit" className="w-full" loading={pending}>
         {t("resetPassword.submit")}
+      </Button>
+    </form>
+  );
+}
+
+// ----------------------------------------------------------- change password
+
+/** Used by the forced change-password screen; clears must_change_password. */
+export function ChangePasswordForm({ locale }: { locale: Locale }) {
+  const t = useTranslations("auth");
+  const [state, formAction, pending] = useActionState(
+    changePasswordAction.bind(null, locale),
+    null,
+  );
+
+  return (
+    <form action={formAction} className="space-y-4">
+      <FormMessage state={state} />
+      <Input
+        name="password"
+        type="password"
+        autoComplete="new-password"
+        required
+        label={t("fields.newPassword")}
+        hint={t("fields.passwordHint")}
+        leadingIcon={<LuLock />}
+      />
+      <Input
+        name="confirmPassword"
+        type="password"
+        autoComplete="new-password"
+        required
+        label={t("fields.confirmPassword")}
+        leadingIcon={<LuLock />}
+      />
+      <Button type="submit" className="w-full" loading={pending}>
+        {t("changePassword.submit")}
       </Button>
     </form>
   );

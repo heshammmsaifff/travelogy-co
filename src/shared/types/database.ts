@@ -162,6 +162,7 @@ export type Database = {
           email: string;
           full_name: string;
           id: string;
+          must_change_password: boolean;
           phone: string | null;
           preferred_locale: string;
           role_id: string;
@@ -179,6 +180,7 @@ export type Database = {
           email: string;
           full_name?: string;
           id: string;
+          must_change_password?: boolean;
           phone?: string | null;
           preferred_locale?: string;
           role_id: string;
@@ -196,6 +198,7 @@ export type Database = {
           email?: string;
           full_name?: string;
           id?: string;
+          must_change_password?: boolean;
           phone?: string | null;
           preferred_locale?: string;
           role_id?: string;
@@ -298,11 +301,19 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      agency_status_counts: {
+        Row: {
+          count: number | null;
+          status: Database["public"]["Enums"]["agency_status"] | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
+      approve_agency: { Args: { p_agency_id: string }; Returns: undefined };
       authorize: { Args: { p_permission: string }; Returns: boolean };
       bootstrap_super_admin: { Args: { p_email: string }; Returns: string };
+      can_read_own_agency: { Args: never; Returns: boolean };
       current_agency_id: { Args: never; Returns: string };
       current_role_id: { Args: never; Returns: string };
       has_permission: {
@@ -311,6 +322,17 @@ export type Database = {
       };
       is_active_user: { Args: never; Returns: boolean };
       is_super_admin: { Args: { p_user_id?: string }; Returns: boolean };
+      reject_agency: {
+        Args: { p_agency_id: string; p_reason: string };
+        Returns: undefined;
+      };
+      set_agency_status: {
+        Args: {
+          p_agency_id: string;
+          p_status: Database["public"]["Enums"]["agency_status"];
+        };
+        Returns: undefined;
+      };
       write_audit: {
         Args: {
           p_action: string;

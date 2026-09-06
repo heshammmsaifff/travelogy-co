@@ -30,7 +30,7 @@ export const getCurrentUser = cache(async (): Promise<AuthenticatedUser | null> 
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      `id, email, full_name, status, preferred_locale, role_id,
+      `id, email, full_name, status, preferred_locale, role_id, must_change_password,
        roles!inner ( id, key, scope, name_ar, name_en ),
        agencies ( id, code, name, status )`,
     )
@@ -60,6 +60,7 @@ export const getCurrentUser = cache(async (): Promise<AuthenticatedUser | null> 
     fullName: profile.full_name,
     status: profile.status as UserStatus,
     preferredLocale: profile.preferred_locale === "en" ? "en" : "ar",
+    mustChangePassword: profile.must_change_password,
     role: {
       id: role.id,
       key: role.key,

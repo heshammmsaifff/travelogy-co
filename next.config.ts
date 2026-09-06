@@ -11,8 +11,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }],
   },
   experimental: {
-    // Keeps the server bundle lean: these are heavy and only ever used server-side.
     serverActions: { bodySizeLimit: "2mb" },
+    // Enables forbidden()/unauthorized(), so a page the user lacks permission
+    // for renders a proper "no access" screen instead of a 404 that would
+    // leave a staff member unsure whether they mistyped the URL.
+    authInterrupts: true,
   },
 };
 

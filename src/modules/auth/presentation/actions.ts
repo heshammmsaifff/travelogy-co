@@ -182,6 +182,45 @@ export async function updatePasswordAction(
   redirect(`/${locale}/login?reset=1`);
 }
 
+/**
+ * Clears a forced temporary password.
+ *
+ * Distinct from updatePasswordAction, which serves the email-recovery flow:
+ * this one also clears `must_change_password`, which is what releases the user
+ * from the change-password screen.
+ */
+export async function changePasswordAction(
+  locale: Locale,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const parsed = resetPasswordSchema.safeParse({
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (!parsed.success) return { ok: false, errorKey: "auth.errors.invalidInput" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, errorKey: "auth.errors.sessionExpired" };
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  if (error) return { ok: false, errorKey: "auth.errors.passwordUpdateFailed" };
+
+  // Clearing the flag grants nothing, so the profile guard permits the user to
+  // update it on their own row.
+  const { error: flagError } = await supabase
+    .from("profiles")
+    .update({ must_change_password: false })
+    .eq("id", user.id);
+
+  if (flagError) return { ok: false, errorKey: "auth.errors.passwordUpdateFailed" };
+
+  redirect(`/${locale}/redirect`);
+}
+
 // --------------------------------------------------------------- sign out
 
 export async function signOutAction(locale: Locale): Promise<void> {
