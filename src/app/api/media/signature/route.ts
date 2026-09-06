@@ -35,10 +35,11 @@ export async function POST(request: Request) {
   // trivially widened by anyone on a different connection.
   const rateKey = user.id;
 
-  if (!rateLimit(`media-signature:${rateKey}`, { limit: 20, windowMs: 60_000 })) {
+  const limit = rateLimit(`media-signature:${rateKey}`, { limit: 20, windowMs: 60_000 });
+  if (!limit.allowed) {
     return NextResponse.json(
       { error: "Too many upload requests. Try again shortly." },
-      { status: 429 },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
     );
   }
 

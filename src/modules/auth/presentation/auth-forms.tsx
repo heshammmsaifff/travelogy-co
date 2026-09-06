@@ -53,7 +53,16 @@ function FormMessage({ state }: { state: ActionState }) {
       className="flex items-start gap-2 rounded-control bg-danger-50 px-3 py-2 text-sm text-danger-700"
     >
       <LuCircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
-      {t(state.errorKey)}
+      <span>
+        {t(state.errorKey)}
+        {/* "Too many attempts" with no horizon leaves the user guessing whether
+            to wait seconds or an hour, so say which. */}
+        {state.retryAfterSeconds ? (
+          <span className="block text-xs opacity-90">
+            {t("auth.errors.retryIn", { minutes: Math.ceil(state.retryAfterSeconds / 60) })}
+          </span>
+        ) : null}
+      </span>
     </p>
   );
 }

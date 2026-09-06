@@ -229,7 +229,9 @@
       "registrationFailed": "We could not complete your registration. Please try again.",
       "resetLinkExpired": "That reset link has expired. Please request a new one.",
       "passwordUpdateFailed": "We could not change your password. Please try again.",
-      "sessionExpired": "Your session has expired. Please sign in again."
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "emailServiceUnavailable": "We could not send the confirmation email right now because of a limit on our email service. Please try again shortly, or contact us.",
+      "retryIn": "Try again in about {minutes} minutes."
     },
     "changePassword": {
       "title": "Change your password",

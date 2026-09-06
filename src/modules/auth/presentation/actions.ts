@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/shared/lib/supabase/server";
 import { clientEnv } from "@/shared/lib/env";
-import { rateLimit } from "@/shared/lib/rate-limit";
+import { rateLimit, type RateLimitResult } from "@/shared/lib/rate-limit";
 import type { Locale } from "@/shared/i18n/config";
 import {
   forgotPasswordSchema,
@@ -25,16 +25,44 @@ import {
  */
 
 export type ActionState =
-  { ok: false; errorKey: string } | { ok: true; messageKey?: string } | null;
+  | { ok: false; errorKey: string; retryAfterSeconds?: number }
+  | { ok: true; messageKey?: string }
+  | null;
 
 /**
- * Rate-limit key. Falls back to a shared bucket when no IP header is present,
- * which is stricter rather than laxer — the safe direction for a failure.
+ * Per-IP rate-limit guard.
+ *
+ * The caller's address only reaches us through a proxy header. A direct
+ * connection — which is every request to `next dev` on localhost — carries
+ * none of them, and the previous version collapsed all of those into a single
+ * `unknown` bucket. That silently throttled the whole machine to a handful of
+ * registrations an hour during development, which is indistinguishable from a
+ * real fault and cost time to diagnose.
+ *
+ * So: when no address can be resolved, fail *open* in development (there is
+ * one developer and no attacker) and *closed* in production (a deployment with
+ * no forwarding header is misconfigured, and a shared bucket is the safe
+ * reading of that).
  */
-async function clientKey(prefix: string): Promise<string> {
+async function guard(
+  prefix: string,
+  options: { limit: number; windowMs: number },
+): Promise<RateLimitResult> {
   const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  return `${prefix}:${ip}`;
+  const ip =
+    h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    h.get("x-real-ip")?.trim() ||
+    h.get("cf-connecting-ip")?.trim() ||
+    null;
+
+  if (!ip) {
+    if (process.env.NODE_ENV !== "production") {
+      return { allowed: true, retryAfterSeconds: 0 };
+    }
+    return rateLimit(`${prefix}:no-ip`, options);
+  }
+
+  return rateLimit(`${prefix}:${ip}`, options);
 }
 
 // ---------------------------------------------------------------- sign in
@@ -45,8 +73,13 @@ export async function signInAction(
   formData: FormData,
 ): Promise<ActionState> {
   // CLAUDE.md §12: login is a sensitive handler and must be rate-limited.
-  if (!rateLimit(await clientKey("signin"), { limit: 10, windowMs: 5 * 60_000 })) {
-    return { ok: false, errorKey: "auth.errors.rateLimited" };
+  const signinLimit = await guard("signin", { limit: 10, windowMs: 5 * 60_000 });
+  if (!signinLimit.allowed) {
+    return {
+      ok: false,
+      errorKey: "auth.errors.rateLimited",
+      retryAfterSeconds: signinLimit.retryAfterSeconds,
+    };
   }
 
   const parsed = loginSchema.safeParse({
@@ -77,8 +110,15 @@ export async function registerAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  if (!rateLimit(await clientKey("register"), { limit: 5, windowMs: 60 * 60_000 })) {
-    return { ok: false, errorKey: "auth.errors.rateLimited" };
+  // 10 an hour rather than 5: a travel agency's branches often share one NAT
+  // address, so several genuine sign-ups can arrive from the same IP.
+  const registerLimit = await guard("register", { limit: 10, windowMs: 60 * 60_000 });
+  if (!registerLimit.allowed) {
+    return {
+      ok: false,
+      errorKey: "auth.errors.rateLimited",
+      retryAfterSeconds: registerLimit.retryAfterSeconds,
+    };
   }
 
   const parsed = registerSchema.safeParse({
@@ -103,7 +143,7 @@ export async function registerAction(
   // The role and status are NOT passed here. The signup trigger always creates
   // an agent_owner in `pending`, precisely because this metadata is
   // client-controlled (see handle_new_user in the migrations).
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: d.email,
     password: d.password,
     options: {
@@ -122,10 +162,34 @@ export async function registerAction(
   });
 
   if (error) {
+    // Supabase returns 429 for two very different situations, and reporting
+    // them identically is what made this confusing to diagnose:
+    //   over_email_send_rate_limit -> the *email provider* is throttling us,
+    //     which the user can do nothing about and retrying will not fix
+    //   anything else 429      -> too many requests from this caller
+    if (error.code === "over_email_send_rate_limit") {
+      console.error(
+        "[register] Supabase email send limit reached. The built-in SMTP is capped at a few messages per hour; configure a custom SMTP provider in Authentication > Emails.",
+      );
+      return { ok: false, errorKey: "auth.errors.emailServiceUnavailable" };
+    }
     if (error.status === 429) return { ok: false, errorKey: "auth.errors.rateLimited" };
+
+    // Anything else is unexpected and would otherwise vanish silently — the
+    // user only ever sees the generic message, so log the real reason.
+    console.error("[register] signUp failed:", error.status, error.code, error.message);
+
     // Supabase does not reveal whether an email already exists, and neither do
     // we — the success screen is shown either way.
     return { ok: false, errorKey: "auth.errors.registrationFailed" };
+  }
+
+  // Supabase returns a session only when email confirmation is switched off.
+  // Sending the user to a screen that says "check your email" in that case
+  // would be telling them to wait for a message that will never arrive, so
+  // route them straight to the awaiting-approval screen instead.
+  if (data.session) {
+    redirect(`/${locale}/pending`);
   }
 
   redirect(`/${locale}/register/submitted`);
@@ -138,8 +202,13 @@ export async function requestPasswordResetAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  if (!rateLimit(await clientKey("pwreset"), { limit: 5, windowMs: 15 * 60_000 })) {
-    return { ok: false, errorKey: "auth.errors.rateLimited" };
+  const resetLimit = await guard("pwreset", { limit: 5, windowMs: 15 * 60_000 });
+  if (!resetLimit.allowed) {
+    return {
+      ok: false,
+      errorKey: "auth.errors.rateLimited",
+      retryAfterSeconds: resetLimit.retryAfterSeconds,
+    };
   }
 
   const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });

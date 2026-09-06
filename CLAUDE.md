@@ -370,6 +370,21 @@ Supabase's built-in SMTP is rate-limited to a handful of emails per hour and is 
 **Second configuration item for the client (alongside the SMTP blocker):**
 Supabase's leaked-password protection is disabled. Turning it on (Authentication -> Policies) checks new passwords against HaveIBeenPwned and costs nothing. Configuration, not code.
 
+### Email delivery — decided 2026-09-06
+
+Registration was failing in testing with a message that read "too many attempts". The cause was **Supabase's built-in SMTP**, which is shared across projects and capped at a few messages an hour; it returns `429 over_email_send_rate_limit`, which the code was reporting with the same message as its own rate limiter.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 4.1 | **Email confirmation is switched OFF for now** (Authentication -> Sign In / Providers -> Email). | Unblocks development immediately. The security cost is small here: admin approval is the real gate on an agent account, and it is unaffected. What is lost is proof that the address is reachable. |
+| 4.2 | **Configuring a custom SMTP provider and re-enabling email confirmation is a MANDATORY Phase 10 item, not optional.** | From Phase 5 the platform emails vouchers and invoices to addresses agents typed themselves. Without confirmation those can be wrong, and without real SMTP they will not send at all. |
+| 4.3 | **`registerAction` adapts to whichever setting is live.** `signUp` returns a session only when confirmation is off; in that case the user goes straight to the awaiting-approval screen rather than one telling them to check an email that will never arrive. | Neither configuration should produce a screen that lies (§2.3). |
+
+**Two bugs this diagnosis exposed, both fixed:**
+- **Supabase's email-send limit and our own rate limiter returned the same message**, so an unfixable provider condition was indistinguishable from "you clicked too fast". They are now separate messages, and the unexpected branch logs the real status/code server-side instead of discarding it.
+- **`x-forwarded-for` is absent on a direct connection**, which is every request to `next dev`. The rate-limit key therefore collapsed to `register:unknown` for everyone, throttling the whole machine to a handful of sign-ups an hour — indistinguishable from a real fault. The guard now reads `x-forwarded-for`, `x-real-ip` and `cf-connecting-ip`, and when no address can be resolved it fails **open in development** (one developer, no attacker) and **closed in production** (a deployment without a forwarding header is misconfigured). The registration limit also rose from 5/hour to 10/hour, because a travel agency's branches often share one NAT address.
+- Rate-limit responses now carry the wait time, so the user is told when to retry instead of being left guessing.
+
 **Known gaps deliberately left open at the end of Phase 0:**
 - ~~`POST /api/media/signature` is unauthenticated~~ — **closed in Phase 1**: it now requires an active session and is rate-limited per user id.
 - `src/shared/lib/rate-limit.ts` is in-memory and per-instance. Adequate for now; Phase 10 replaces it with a shared store.

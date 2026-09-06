@@ -6,8 +6,8 @@ import "server-only";
  * ── Scope and honest limitations ─────────────────────────────────────────────
  * This is an IN-MEMORY, PER-INSTANCE limiter. On a serverless deployment each
  * instance keeps its own counter, so the effective limit is (limit × instances)
- * and the state is lost on cold start. That is adequate for Phase 0 — it stops
- * a runaway loop or a casual script hammering an endpoint — and is deliberately
+ * and the state is lost on cold start. That is adequate for now — it stops a
+ * runaway loop or a casual script hammering an endpoint — and is deliberately
  * not presented as a real abuse defence.
  *
  * Phase 10 (hardening) replaces this with a shared store (a Supabase table or
@@ -19,6 +19,12 @@ type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();
 
+export type RateLimitResult = {
+  allowed: boolean;
+  /** Seconds until the window resets. 0 when the request was allowed. */
+  retryAfterSeconds: number;
+};
+
 /** Stops the map growing without bound on a long-lived server process. */
 function evictExpired(now: number) {
   if (buckets.size < 1000) return;
@@ -29,12 +35,15 @@ function evictExpired(now: number) {
 
 /**
  * Records a hit against `key`.
- * @returns `true` if the request is within budget, `false` if it should be rejected.
+ *
+ * Returns the wait time as well as the verdict, so the caller can tell the user
+ * *when* to try again. "Too many attempts" with no horizon is a dead end —
+ * the person has no way to know whether to wait ten seconds or an hour.
  */
 export function rateLimit(
   key: string,
   { limit, windowMs }: { limit: number; windowMs: number },
-): boolean {
+): RateLimitResult {
   const now = Date.now();
   evictExpired(now);
 
@@ -42,11 +51,13 @@ export function rateLimit(
 
   if (!bucket || bucket.resetAt <= now) {
     buckets.set(key, { count: 1, resetAt: now + windowMs });
-    return true;
+    return { allowed: true, retryAfterSeconds: 0 };
   }
 
-  if (bucket.count >= limit) return false;
+  if (bucket.count >= limit) {
+    return { allowed: false, retryAfterSeconds: Math.ceil((bucket.resetAt - now) / 1000) };
+  }
 
   bucket.count += 1;
-  return true;
+  return { allowed: true, retryAfterSeconds: 0 };
 }
