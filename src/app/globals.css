@@ -1,0 +1,271 @@
+@import "tailwindcss";
+@import "sileo/styles.css";
+
+/* ============================================================================
+   Last Line Travel — design tokens
+   ----------------------------------------------------------------------------
+   Single source of truth for colour, type, spacing, radii and elevation
+   (CLAUDE.md §3: "build a small internal design-token set once and reuse it
+   everywhere; don't restyle ad hoc per page").
+
+   Direction: neutral slate + a single blue accent. The neutrals carry the
+   interface; blue is reserved for the primary action and active state, so it
+   still means something on a screen dense with rows and filters.
+
+   Always reach for a *semantic* token (--color-surface, --color-ink-muted)
+   rather than a raw ramp step (--color-neutral-200) when building UI. The ramp
+   exists so the semantic layer can be retuned in one place.
+   ========================================================================== */
+
+@theme {
+  /* --- Neutral ramp (cool slate) ------------------------------------------ */
+  --color-neutral-50: oklch(0.985 0.002 250);
+  --color-neutral-100: oklch(0.968 0.004 250);
+  --color-neutral-200: oklch(0.925 0.006 250);
+  --color-neutral-300: oklch(0.872 0.009 250);
+  --color-neutral-400: oklch(0.715 0.012 250);
+  --color-neutral-500: oklch(0.585 0.014 250);
+  --color-neutral-600: oklch(0.478 0.015 250);
+  --color-neutral-700: oklch(0.395 0.016 252);
+  --color-neutral-800: oklch(0.285 0.016 254);
+  --color-neutral-900: oklch(0.215 0.015 256);
+  --color-neutral-950: oklch(0.155 0.014 258);
+
+  /* --- Brand ramp (the single accent) ------------------------------------- */
+  --color-brand-50: oklch(0.972 0.014 252);
+  --color-brand-100: oklch(0.936 0.032 252);
+  --color-brand-200: oklch(0.878 0.058 252);
+  --color-brand-300: oklch(0.796 0.094 253);
+  --color-brand-400: oklch(0.688 0.135 254);
+  --color-brand-500: oklch(0.596 0.166 255);
+  --color-brand-600: oklch(0.522 0.176 257);
+  --color-brand-700: oklch(0.452 0.158 258);
+  --color-brand-800: oklch(0.392 0.128 259);
+  --color-brand-900: oklch(0.342 0.098 260);
+
+  /* --- Status ramps -------------------------------------------------------- */
+  --color-success-50: oklch(0.972 0.021 155);
+  --color-success-100: oklch(0.936 0.048 155);
+  --color-success-600: oklch(0.545 0.135 155);
+  --color-success-700: oklch(0.468 0.116 156);
+
+  --color-warning-50: oklch(0.976 0.028 85);
+  --color-warning-100: oklch(0.944 0.066 85);
+  --color-warning-600: oklch(0.672 0.152 65);
+  --color-warning-700: oklch(0.545 0.128 60);
+
+  --color-danger-50: oklch(0.971 0.018 25);
+  --color-danger-100: oklch(0.936 0.042 25);
+  --color-danger-600: oklch(0.552 0.198 25);
+  --color-danger-700: oklch(0.472 0.172 26);
+
+  /* --- Semantic surfaces & ink -------------------------------------------- */
+  --color-canvas: var(--color-neutral-100);
+  --color-surface: oklch(1 0 0);
+  --color-surface-sunken: var(--color-neutral-50);
+  --color-surface-hover: var(--color-neutral-100);
+
+  --color-border: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-300);
+
+  /* ink-* all clear 4.5:1 on --color-surface (design skill: contrast baseline) */
+  --color-ink: var(--color-neutral-900);
+  --color-ink-muted: var(--color-neutral-600);
+  --color-ink-subtle: var(--color-neutral-500);
+  --color-ink-inverse: oklch(1 0 0);
+
+  --color-focus: var(--color-brand-500);
+
+  /* --- Typography ---------------------------------------------------------- */
+  /* One family across both locales: IBM Plex Sans Arabic ships matched Arabic
+     and Latin cuts, so ar/en stay visually consistent without a second face.
+     The literal family names are injected by next/font in the root layout. */
+  --font-sans: var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+
+  /* Tightened scale for a data-dense back-office. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.625rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.375rem;
+
+  /* --- Radii --------------------------------------------------------------- */
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-modal: 1rem;
+
+  /* --- Elevation ----------------------------------------------------------- */
+  /* Low-spread, tinted shadows — flat enough for dense tables, present enough
+     to separate an overlay from the page behind it. */
+  --shadow-card: 0 1px 2px 0 oklch(0.215 0.015 256 / 0.05);
+  --shadow-raised: 0 1px 3px 0 oklch(0.215 0.015 256 / 0.08), 0 1px 2px -1px oklch(0.215 0.015 256 / 0.06);
+  --shadow-overlay: 0 10px 32px -8px oklch(0.215 0.015 256 / 0.18), 0 4px 12px -4px oklch(0.215 0.015 256 / 0.1);
+
+  /* --- Motion -------------------------------------------------------------- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Overlay entrances. Applied via motion-safe:, so a user who has asked for
+     reduced motion simply gets the end state. */
+  --animate-overlay-in: overlay-in 150ms var(--ease-out-soft);
+  --animate-modal-in: modal-in 180ms var(--ease-out-soft);
+
+  @keyframes overlay-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+}
+
+/* ============================================================================
+   Base layer
+   ========================================================================== */
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    /* Arabic glyphs sit taller; a touch more leading keeps ar/en rhythm even. */
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Digit shaping is decided in shared/i18n/config.ts (via the Intl numbering
+     system), not in CSS, so it stays consistent between rendered text and any
+     value that is formatted in JS. See LOCALE_META there. */
+
+  /* Design skill: focus must stay visible for keyboard users, on every control. */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-control);
+  }
+
+  /* Design skill: no harsh animation; honour the OS-level preference. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ============================================================================
+   SweetAlert2 — restyled onto our tokens so blocking dialogs don't arrive
+   wearing a different design system than the rest of the app.
+   ========================================================================== */
+
+@layer components {
+  .swal2-container {
+    font-family: var(--font-sans);
+  }
+
+  .swal2-popup {
+    border-radius: var(--radius-modal);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-overlay);
+    padding: 1.75rem;
+    background: var(--color-surface);
+  }
+
+  .swal2-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .swal2-html-container {
+    font-size: var(--text-sm);
+    color: var(--color-ink-muted);
+    margin-top: 0.5rem;
+  }
+
+  .swal2-actions {
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .swal2-styled.swal2-confirm,
+  .swal2-styled.swal2-cancel,
+  .swal2-styled.swal2-deny {
+    border-radius: var(--radius-control);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    padding: 0.5rem 0.875rem;
+    box-shadow: none !important;
+    cursor: pointer;
+    transition: background-color 150ms var(--ease-out-soft);
+  }
+
+  .swal2-styled.swal2-confirm {
+    background-color: var(--color-brand-600) !important;
+    color: var(--color-ink-inverse);
+  }
+
+  .swal2-styled.swal2-confirm:hover {
+    background-color: var(--color-brand-700) !important;
+  }
+
+  /* Destructive confirmations opt in via customClass (see confirmDestructive). */
+  .swal2-styled.swal2-confirm.swal-confirm-danger {
+    background-color: var(--color-danger-600) !important;
+  }
+
+  .swal2-styled.swal2-confirm.swal-confirm-danger:hover {
+    background-color: var(--color-danger-700) !important;
+  }
+
+  .swal2-styled.swal2-cancel {
+    background-color: var(--color-surface) !important;
+    color: var(--color-ink) !important;
+    border: 1px solid var(--color-border-strong);
+  }
+
+  .swal2-styled.swal2-cancel:hover {
+    background-color: var(--color-surface-hover) !important;
+  }
+
+  .swal2-styled:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}

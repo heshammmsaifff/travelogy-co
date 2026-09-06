@@ -1,0 +1,116 @@
+{
+  "app": {
+    "name": "Last Line Travel",
+    "tagline": "B2B travel booking platform"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading…",
+    "comingSoon": "Coming soon",
+    "language": "Language",
+    "search": "Search",
+    "actions": "Actions",
+    "noResults": "No results",
+    "required": "This field is required"
+  },
+  "devKitchenSink": {
+    "title": "UI kitchen sink",
+    "subtitle": "Internal Phase 0 verification page — design tokens, shared primitives, toasts, dialogs and the Cloudinary upload pipeline.",
+    "phaseBadge": "Phase 0",
+    "localeSection": {
+      "title": "Locale & direction",
+      "description": "The page's active writing direction, plus locale-formatted number, currency and date samples.",
+      "direction": "Direction",
+      "activeLocale": "Active locale",
+      "sampleNumber": "Number",
+      "sampleCurrency": "Currency",
+      "sampleDate": "Date"
+    },
+    "buttons": {
+      "title": "Buttons",
+      "description": "Variants, sizes, loading and disabled states, with react-icons.",
+      "primary": "Primary action",
+      "secondary": "Secondary action",
+      "ghost": "Ghost",
+      "danger": "Delete permanently",
+      "loading": "Saving",
+      "withIcon": "Add hotel"
+    },
+    "inputs": {
+      "title": "Inputs",
+      "description": "Labelled field with hint text and an error state — shaped for React Hook Form.",
+      "agencyName": "Agency name",
+      "agencyNamePlaceholder": "e.g. Nile Travel Agency",
+      "agencyNameHint": "The trading name as it should appear on invoices.",
+      "emailLabel": "Email address",
+      "emailError": "That doesn't look like a valid email address."
+    },
+    "toasts": {
+      "title": "Toasts (sileo)",
+      "description": "Non-blocking feedback — for results that don't need the user to acknowledge them.",
+      "success": "Success toast",
+      "error": "Error toast",
+      "warning": "Warning toast",
+      "info": "Info toast",
+      "promise": "Promise toast",
+      "successTitle": "Saved",
+      "successBody": "Agency details were saved successfully.",
+      "errorTitle": "Couldn't save",
+      "errorBody": "The server could not be reached.",
+      "warningTitle": "Credit running low",
+      "warningBody": "This agency is close to its credit limit.",
+      "infoTitle": "Rates updated",
+      "infoBody": "Contract rates for October have been refreshed.",
+      "promiseLoading": "Creating booking…",
+      "promiseSuccess": "Booking confirmed",
+      "promiseError": "Booking failed"
+    },
+    "dialogs": {
+      "title": "Blocking dialogs (SweetAlert2)",
+      "description": "Reserved for irreversible actions, or a message the user must acknowledge.",
+      "deleteHotel": "Delete a hotel",
+      "deleteTitle": "Delete this hotel?",
+      "deleteBody": "The hotel and every room type under it will be removed. This cannot be undone.",
+      "deleted": "Hotel deleted.",
+      "cancelled": "Nothing was deleted."
+    },
+    "modal": {
+      "title": "Modal",
+      "description": "Built on Radix Dialog — focus trapping, keyboard handling and scroll lock.",
+      "open": "Open modal",
+      "heading": "Edit credit limit",
+      "body": "A sample modal used to verify focus and direction behaviour in Phase 0.",
+      "close": "Close"
+    },
+    "table": {
+      "title": "Table shell",
+      "description": "The base table wrapper — sticky header, horizontal scroll and an empty state.",
+      "colRef": "Reference",
+      "colAgency": "Agency",
+      "colStatus": "Status",
+      "colAmount": "Amount",
+      "colDate": "Date",
+      "statusConfirmed": "Confirmed",
+      "statusPending": "Pending",
+      "statusCancelled": "Cancelled"
+    },
+    "upload": {
+      "title": "Cloudinary upload",
+      "description": "Compressed to WebP in the browser, then uploaded straight to Cloudinary with a server-issued signature.",
+      "choose": "Choose an image",
+      "uploading": "Uploading…",
+      "compressing": "Compressing…",
+      "originalSize": "Original size",
+      "compressedSize": "After compression",
+      "saved": "Saved",
+      "publicId": "Public ID",
+      "resultTitle": "Upload complete",
+      "resultBody": "The image is stored on Cloudinary and rendered through an f_auto,q_auto transformation URL.",
+      "failed": "Upload failed",
+      "notAnImage": "The selected file is not an image."
+    }
+  }
+}
