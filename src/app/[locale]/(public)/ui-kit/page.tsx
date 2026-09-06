@@ -25,7 +25,7 @@ import { UploadDemo } from "./_components/upload-demo";
  * primitives, and the page used to prove the Phase 0 foundation works in both
  * directions. It is not part of the product.
  *
- * TODO (Phase 11): exclude this route from the production build before launch.
+ * TODO (Phase 10): exclude this route from the production build before launch.
  */
 
 /** Static sample rows — this page has no data source behind it by design. */

@@ -10,7 +10,7 @@ import "server-only";
  * a runaway loop or a casual script hammering an endpoint — and is deliberately
  * not presented as a real abuse defence.
  *
- * Phase 11 (hardening) replaces this with a shared store (a Supabase table or
+ * Phase 10 (hardening) replaces this with a shared store (a Supabase table or
  * an edge KV) so the limit holds across instances. The call signature is chosen
  * to make that swap a drop-in change.
  */
