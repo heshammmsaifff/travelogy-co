@@ -1,7 +1,8 @@
 import "server-only";
 
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { NextRequest, NextResponse } from "next/server";
 import { clientEnv, getServerEnv } from "@/shared/lib/env";
 import type { Database } from "@/shared/types/database";
 
@@ -61,4 +62,43 @@ export function createServiceRoleClient() {
       },
     },
   );
+}
+
+/**
+ * Route Handler client that hands its cookies back to the caller.
+ *
+ * `createClient()` above writes through `next/headers`, which is fine for a
+ * Server Action but unreliable for a Route Handler that returns a redirect it
+ * builds itself: the sign-in cookies must land on *that* response or the user
+ * arrives at the next page signed out. Here the cookies are collected and
+ * applied explicitly, so establishing a session and redirecting cannot come
+ * apart (see `/api/auth/confirm`).
+ */
+export function createRouteHandlerClient(request: NextRequest) {
+  const pending: { name: string; value: string; options: CookieOptions }[] = [];
+
+  const supabase = createServerClient<Database>(
+    clientEnv.NEXT_PUBLIC_SUPABASE_URL,
+    clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          pending.push(...cookiesToSet);
+        },
+      },
+    },
+  );
+
+  /** Copies any cookies Supabase set onto the response being returned. */
+  function applyCookies<T extends NextResponse>(response: T): T {
+    for (const { name, value, options } of pending) {
+      response.cookies.set(name, value, options);
+    }
+    return response;
+  }
+
+  return { supabase, applyCookies };
 }

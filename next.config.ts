@@ -6,6 +6,11 @@ const withNextIntl = createNextIntlPlugin("./src/shared/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // `next dev` otherwise appends a block of its own guidance to CLAUDE.md on
+  // every boot. That file is this project's working agreement (§14) and is
+  // written deliberately by hand; a build tool editing it produces a dirty
+  // tree on every start and puts text nobody reviewed into the spec.
+  agentRules: false,
   images: {
     // Hotel photos, banners and documents are all served from Cloudinary (CLAUDE.md §8).
     remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }],

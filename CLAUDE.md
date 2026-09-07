@@ -430,6 +430,54 @@ Two bugs found when the client ran the documented first-run step.
 
 **Bug found while cleaning up after the tests:** `set_supplier_credential` and `clear_supplier_credential` gated on `has_permission(auth.uid(), …)`, which is false under the service role because `auth.uid()` is NULL — so an ops script or migration could not rotate or remove a supplier key, and a cleanup call failed silently leaving the credential in place. Fixed in `20260907110300`, applying the standing rule from §15 (5.x): a system-context escape must accept `auth.uid() IS NULL`.
 
+### Password reset — fixed 2026-09-08
+
+The recovery link in the email opened on "رابط غير صالح" / "This link is not valid". The link was never
+the problem: `/api/auth/confirm` was throwing it away.
+
+Supabase's default email template renders `{{ .ConfirmationURL }}`, which points
+at Supabase's own `/auth/v1/verify`. That endpoint consumes the token itself and
+then redirects to our `redirect_to` — and because `@supabase/ssr` requests PKCE,
+it arrives as **`?code=`**, not `?token_hash=`. The route read only `token_hash`,
+found none, and answered `auth-error?reason=invalid` before doing any work.
+
+Confirmed against the client's own attempt rather than by reading code: their
+`auth.flow_state` row for `recovery` shows `auth_code_issued_at` ten seconds
+after it was created — Supabase issued the code, the route discarded it.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 8.1 | **`/api/auth/confirm` handles every shape the server can see**: `?code=` via `exchangeCodeForSession`, `?token_hash=&type=` via `verifyOtp`, and Supabase's own `?error=&error_code=` params. | A single landing route that understands one of three shapes is not a landing route. Which shape arrives is decided by an email template in the dashboard, i.e. outside this repo — so the route must not depend on which one is configured. |
+| 8.2 | **The implicit flow's `#access_token=…` is deliberately NOT handled.** | A fragment never reaches the server, so a Route Handler cannot see it — handling it would mean shipping a client-side token reader, a second auth surface, for a shape nothing in this app issues (only an admin-generated link produces it). It falls through to the error page instead. Stated here so a later session does not read the omission as an oversight. |
+| 8.3 | **Session cookies are applied to the redirect explicitly**, via a new `createRouteHandlerClient()` in `shared/lib/supabase/server.ts`. | `createClient()` writes through `next/headers`, which a Route Handler's self-built redirect does not reliably carry. Establishing a session and sending the user onward must not be able to come apart, or the user lands on the reset page signed out and is told the link expired. |
+| 8.4 | **A verifier mismatch reports `wrongBrowser`, not `expired`.** | PKCE binds the link to the browser that requested it. Opening the email on a phone after requesting on a desktop fails with a live, valid link — telling that user it "expired" is false (§2.3) and sends them to request another that fails identically. Verified in the wild: a real `?code=` hit the route during this fix and failed exactly this way. |
+| 8.5 | **`next dev`'s `agentRules` is turned off in `next.config.ts`.** | Next.js 16 appends a block of its own instructions to `CLAUDE.md` on every dev boot. That file is this project's working agreement (§14), written by hand and reviewed line by line; a build tool editing it dirties the tree on every start and puts unreviewed text into the spec. |
+
+**Not self-verified, and why:** every branch above was exercised end to end against
+the running app — the `token_hash` path through to the reset page rendering with a
+real session, and each failure shape — except one: a *valid* `?code=` exchanging
+successfully. Reproducing that faithfully needs the live recovery token from
+`auth.users`, and reading an auth credential out of the database was refused. The
+branch is reached and its failure modes are proven; the success path rests on
+`exchangeCodeForSession` behaving as documented, over the same cookie plumbing the
+`token_hash` path already proves.
+
+**Third configuration item for the client (with SMTP and leaked-password protection).**
+Switch the Auth email templates from `{{ .ConfirmationURL }}` to the token-hash form,
+in Authentication -> Emails -> Templates:
+
+```
+{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/ar/reset-password
+```
+
+(`type=signup` and `next=/ar/pending` for the confirmation template.) This is the
+path proven in testing, and it is **stateless** — no cookie from the requesting
+browser — so a reset requested on a desktop can be completed on a phone, which
+the current PKCE link cannot do. The cost is that `next` is fixed to one locale in
+a static template, so an English-locale user lands on the Arabic reset page and
+must switch; the code keeps working with either template, so this is the client's
+call, not a blocker.
+
 **Known gaps deliberately left open at the end of Phase 0:**
 - ~~`POST /api/media/signature` is unauthenticated~~ — **closed in Phase 1**: it now requires an active session and is rate-limited per user id.
 - `src/shared/lib/rate-limit.ts` is in-memory and per-instance. Adequate for now; Phase 10 replaces it with a shared store.

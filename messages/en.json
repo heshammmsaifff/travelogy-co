@@ -182,6 +182,7 @@
       "title": "This link is not valid",
       "expired": "The link has expired or has already been used.",
       "invalid": "That link is not valid.",
+      "wrongBrowser": "Open the link in the same browser and device you requested the reset from. The link itself is fine, but this browser holds no proof the request came from it.",
       "requestNew": "Request a new link",
       "backToLogin": "Back to sign in"
     },

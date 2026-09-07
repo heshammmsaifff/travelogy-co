@@ -4,7 +4,17 @@ import { Link } from "@/shared/i18n/navigation";
 import { AuthShell } from "@/modules/auth/presentation/auth-shell";
 import { Button } from "@/shared/ui/button";
 
-/** Landing spot for an expired or malformed email link. */
+/**
+ * Landing spot for an email link that could not be used.
+ *
+ * The reason comes from `/api/auth/confirm` and is narrowed against this list
+ * rather than passed to `t()` directly, so a hand-edited query string cannot
+ * probe the message catalogue for keys that are not error copy.
+ */
+const REASONS = ["expired", "invalid", "wrongBrowser"] as const;
+type Reason = (typeof REASONS)[number];
+
+/** Landing spot for an expired, misdirected or malformed email link. */
 export default async function AuthErrorPage({
   params,
   searchParams,
@@ -21,7 +31,7 @@ export default async function AuthErrorPage({
     <AuthShell
       locale={locale}
       title={t("title")}
-      subtitle={reason === "expired" ? t("expired") : t("invalid")}
+      subtitle={t(REASONS.includes(reason as Reason) ? (reason as Reason) : "invalid")}
     >
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button asChild className="flex-1">
