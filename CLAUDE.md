@@ -385,6 +385,17 @@ Registration was failing in testing with a message that read "too many attempts"
 - **`x-forwarded-for` is absent on a direct connection**, which is every request to `next dev`. The rate-limit key therefore collapsed to `register:unknown` for everyone, throttling the whole machine to a handful of sign-ups an hour — indistinguishable from a real fault. The guard now reads `x-forwarded-for`, `x-real-ip` and `cf-connecting-ip`, and when no address can be resolved it fails **open in development** (one developer, no attacker) and **closed in production** (a deployment without a forwarding header is misconfigured). The registration limit also rose from 5/hour to 10/hour, because a travel agency's branches often share one NAT address.
 - Rate-limit responses now carry the wait time, so the user is told when to retry instead of being left guessing.
 
+### Bootstrap and orphan agencies — fixed 2026-09-07
+
+Two bugs found when the client ran the documented first-run step.
+
+| # | Bug | Fix |
+|---|---|---|
+| 5.1 | **`bootstrap_super_admin()` could not run from the SQL editor** — the one place §15 tells you to run it. Its profile guard's system-context escape tested only `auth.role() = 'service_role'`, but the SQL editor is `postgres` with no JWT, so `auth.role()` is NULL. The guard fell through to its ordinary rules, and bootstrap runs precisely when no super admin exists to satisfy them. | The guard now treats `auth.uid() is null` as a system context, matching the agencies guard fixed in `20260906200200`. **Why it was missed: every test called bootstrap through a service-role client, where `auth.role()` really is `service_role`. The documented path was never the one exercised.** Test through the route the docs describe, not only the one that is convenient from a script. |
+| 5.2 | **An agency outlived its last member.** `profiles` cascades from `auth.users` and from `agencies`, but nothing points back — so deleting a user left the agency as a company with no members, stuck in `pending`, sitting in the approval queue and holding a code that would never be used. | An `after delete on profiles` trigger removes an agency once its last member is gone. Also: bootstrap now removes the agency the signup trigger created for the account being promoted, since a super admin belongs to no agency. |
+
+**Standing rule this produced:** every guard with a system-context escape must accept `auth.uid() is null`, not just `auth.role() = 'service_role'`. That is safe because every RLS policy on these tables is scoped `to authenticated`, so an anonymous request cannot reach an UPDATE at all — a null `auth.uid()` there means Postgres itself, a migration, the service role, or the SQL editor.
+
 **Known gaps deliberately left open at the end of Phase 0:**
 - ~~`POST /api/media/signature` is unauthenticated~~ — **closed in Phase 1**: it now requires an active session and is rate-limited per user id.
 - `src/shared/lib/rate-limit.ts` is in-memory and per-instance. Adequate for now; Phase 10 replaces it with a shared store.
