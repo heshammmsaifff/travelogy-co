@@ -216,9 +216,31 @@ export async function requestPasswordResetAction(
   // cannot be used to test which addresses exist.
   if (parsed.success) {
     const supabase = await createClient();
-    await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
       redirectTo: `${clientEnv.NEXT_PUBLIC_SITE_URL}/api/auth/confirm?next=/${locale}/reset-password`,
     });
+
+    // A 429 says nothing about whether the address exists — it is our own
+    // capacity, identical for every caller — so reporting it leaks nothing
+    // while telling the user the truth. Claiming "check your inbox" when the
+    // provider refused to send is the screen that lies about its own state
+    // (CLAUDE.md §2.3), and it is what made a dead reset flow look like a
+    // mail-delivery problem on the user's side.
+    if (error?.code === "over_email_send_rate_limit") {
+      console.error(
+        "[pwreset] Supabase email send limit reached. The built-in SMTP is capped at a few messages per hour; configure a custom SMTP provider in Authentication > Emails.",
+      );
+      return { ok: false, errorKey: "auth.errors.emailServiceUnavailable" };
+    }
+    if (error?.status === 429) {
+      return { ok: false, errorKey: "auth.errors.rateLimited" };
+    }
+
+    // Any other failure stays neutral: unlike a 429, it could differ between a
+    // real and an unknown address, so surfacing it would enumerate accounts.
+    if (error) {
+      console.error("[pwreset] resetPasswordForEmail failed:", error.status, error.code, error.message);
+    }
   }
 
   return { ok: true, messageKey: "auth.forgotPassword.sent" };

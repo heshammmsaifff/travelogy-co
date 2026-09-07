@@ -462,6 +462,28 @@ branch is reached and its failure modes are proven; the success path rests on
 `exchangeCodeForSession` behaving as documented, over the same cookie plumbing the
 `token_hash` path already proves.
 
+**Follow-up the same day: the email stopped arriving at all.** A separate bug, and
+a worse one. The auth logs tell it exactly: `/recover` succeeded once at 23:24:15
+and `mail.send` fired, then returned **429** twice — first the per-address cooldown,
+then `over_email_send_rate_limit`, the hourly cap on Supabase's built-in SMTP. No
+message was sent after the first.
+
+`requestPasswordResetAction` discarded the result of `resetPasswordForEmail`
+entirely and returned `{ ok: true, "we sent you a link" }` regardless. So the
+provider refused to send and the screen said it had sent — the user was left
+watching an inbox for a message that was never going to arrive, with nothing
+anywhere to tell them why. `registerAction` had already been taught this
+distinction (§15, 4.x); the reset action never was.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 8.6 | **A 429 from `resetPasswordForEmail` is now surfaced**: `over_email_send_rate_limit` -> "our email service is at its limit", any other 429 -> "too many attempts". Every other error still returns the neutral success. | The neutral response exists to stop the form being used as an account enumerator, and that reasoning holds for errors that could differ between a real and an unknown address. A 429 is not one of those — it is our own capacity and is identical for every caller — so reporting it leaks nothing and is simply true. A screen claiming to have sent an email the provider rejected is exactly the fake success §2.3 forbids. |
+| 8.7 | **Custom SMTP is escalated from a Phase 10 item to a live blocker.** | It was recorded as mandatory-before-launch. It is now breaking a shipped flow in development: the built-in SMTP's few-per-hour cap is reached by ordinary testing, and password reset is unusable until it resets. Until a provider is configured, expect this message during any session with more than a couple of email sends. |
+
+Verified in the browser in both locales with the cap genuinely exhausted: the form
+now shows the email-service message instead of a false confirmation, and the server
+log names the cause and the fix.
+
 **Third configuration item for the client (with SMTP and leaked-password protection).**
 Switch the Auth email templates from `{{ .ConfirmationURL }}` to the token-hash form,
 in Authentication -> Emails -> Templates:
