@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/shared/lib/supabase/server";
+import { describeDbError } from "@/shared/lib/db-error";
 import { requirePermission } from "@/modules/auth/infrastructure/guard";
 import {
   creditLimitSchema,
@@ -24,7 +25,8 @@ export type Result =
 const FORBIDDEN: Result = { ok: false, errorKey: "access.errors.forbidden" };
 
 function toResult(error: unknown, fallbackKey: string): Result {
-  const message = error instanceof Error ? error.message : String(error);
+  // Supabase rejects with a plain object, not an Error — see describeDbError.
+  const message = describeDbError(error);
   if (/permission|not have|required|not found/i.test(message)) {
     return { ok: false, errorKey: "access.errors.refused", detail: message };
   }

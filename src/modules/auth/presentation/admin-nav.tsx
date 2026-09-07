@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import {
   LuBuilding2,
+  LuHotel,
   LuLayoutDashboard,
   LuScrollText,
   LuShieldCheck,
@@ -21,10 +22,11 @@ import { cn } from "@/shared/lib/cn";
  * convenience, not a control: the page behind it re-checks (CLAUDE.md §12).
  */
 
-export type AdminSection = "overview" | "agencies" | "staff" | "roles" | "audit";
+export type AdminSection = "overview" | "hotels" | "agencies" | "staff" | "roles" | "audit";
 
 const SECTIONS: { key: AdminSection; href: string; icon: IconType }[] = [
   { key: "overview", href: "/admin", icon: LuLayoutDashboard },
+  { key: "hotels", href: "/admin/hotels", icon: LuHotel },
   { key: "agencies", href: "/admin/agencies", icon: LuBuilding2 },
   { key: "staff", href: "/admin/staff", icon: LuUsers },
   { key: "roles", href: "/admin/roles", icon: LuShieldCheck },

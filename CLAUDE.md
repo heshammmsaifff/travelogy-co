@@ -396,6 +396,24 @@ Two bugs found when the client ran the documented first-run step.
 
 **Standing rule this produced:** every guard with a system-context escape must accept `auth.uid() is null`, not just `auth.role() = 'service_role'`. That is safe because every RLS policy on these tables is scoped `to authenticated`, so an anonymous request cannot reach an UPDATE at all — a null `auth.uid()` there means Postgres itself, a migration, the service role, or the SQL editor.
 
+### Phase 3a (hotel inventory) — decided 2026-09-07
+
+| # | Decision | Rationale |
+|---|---|---|
+| 6.1 | **Agents get NO direct read on any hotel table**, not even active properties. | `rates` are contracted net prices, and the gap between them and the agent's quote is the client's margin. A SELECT policy exposing `rates` would leak it, and no care in the application would put it back — RLS is what the PostgREST endpoint enforces and agents hold a real token against it. Phase 3c gives agents availability and sell prices through a function that applies markup. |
+| 6.2 | **Rate periods are stored as a `daterange` with a database EXCLUDE constraint.** Two rates covering the same night for the same room and plan are impossible. | An overlap is not a display bug — it is a booking charged the wrong amount, decided by whichever row a query happened to return first. Validation in the UI can be forgotten; the constraint cannot. |
+| 6.3 | **Admins enter the first and LAST night; the database stores half-open `[from, to+1)`.** | That is how a contract is written and how a season is thought about. The conversion means Jun 1-30 and Jul 1-31 meet exactly, instead of colliding on the 30th or leaving it unpriced. Verified round-tripping in both directions. |
+| 6.4 | **`standard_occupancy` is separate from `max_occupancy`.** The nightly rate covers the former; guests beyond it are charged the extra-adult/child price. | It is what lets one room sell at different prices for two, three and four guests without duplicating the rate row per party size. |
+| 6.5 | **Allocation is one row per room type per night**, entered through a bulk range form. | Contracts are negotiated in blocks ("20 rooms, June to September"), but a stop-sell or an allotment change applies to a single night. Per-date rows serve both; the bulk form keeps entry sane. |
+| 6.6 | **`allocations.sold` exists but nothing in Phase 3 writes it.** | The booking engine in Phase 5 owns it. Incrementing it here would be inventing a number, and the column comment says so. |
+| 6.7 | **Publishing a hotel with no active room type is refused**, with the reason shown. | An empty property in front of agents is worse than a draft that will not publish. |
+| 6.8 | **Deleting a hotel image leaves the Cloudinary asset in place.** | Destroying it needs a signed call, and an orphaned asset is cheap whereas one deleted while an old voucher still references it is not. A sweep is a Phase 10 item, stated on the screen rather than left implicit. |
+| 6.9 | **`/api/media/signature` is now permission-gated per folder.** | Phase 0 left it open to any active session, with a note to revisit. `hotels` requires `hotels.media.manage`, `banners` requires `cms.content.publish`, `documents` requires `agencies.update`. |
+
+**Two bugs found by filling the forms — neither visible from reading the code:**
+- **Every optional numeric field was rejected when left blank.** `z.coerce.number()` turns an untouched input's `""` into `0`, which then fails `.min(1)`; `.optional()` does not help because the key *is* present. It broke `maxStay`, `sizeSqm`, `starRating`, `minNights`, `freeNights` and allocation's `minStay`. Fixed with an `optionalNumber()` helper that strips `""` to `undefined` before coercion.
+- **Constraint-specific error messages never reached the user.** The `toResult` helpers tested `error instanceof Error`, but Supabase rejects with a plain `PostgrestError` object, so every lookup ran against `"[object Object]"` and fell through to the generic fallback. The overlapping-rate message — the one case where knowing *why* actually matters — was the visible casualty. A shared `describeDbError()` now reads `message`/`details`/`hint`/`code`, and all three modules use it.
+
 **Known gaps deliberately left open at the end of Phase 0:**
 - ~~`POST /api/media/signature` is unauthenticated~~ — **closed in Phase 1**: it now requires an active session and is rate-limited per user id.
 - `src/shared/lib/rate-limit.ts` is in-memory and per-instance. Adequate for now; Phase 10 replaces it with a shared store.

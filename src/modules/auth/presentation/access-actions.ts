@@ -3,6 +3,7 @@
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient, createServiceRoleClient } from "@/shared/lib/supabase/server";
+import { describeDbError } from "@/shared/lib/db-error";
 import { requirePermission } from "@/modules/auth/infrastructure/guard";
 import { can } from "@/modules/auth/domain/user";
 import {
@@ -29,7 +30,8 @@ const FORBIDDEN: Result = { ok: false, errorKey: "access.errors.forbidden" };
 
 /** Maps a thrown database/permission error onto a message key. */
 function toResult(error: unknown, fallbackKey: string): Result {
-  const message = error instanceof Error ? error.message : String(error);
+  // Supabase rejects with a plain object, not an Error — see describeDbError.
+  const message = describeDbError(error);
   // 42501 is our convention for "refused by a protection trigger"; those
   // messages are written for humans, so they are safe to surface.
   if (/permission|not have|cannot|last active super admin|system role/i.test(message)) {

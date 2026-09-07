@@ -43,6 +43,7 @@ export default async function AdminLayout({
   // Navigation is built from what this user may actually do, so a role without
   // `settings.roles.manage` never sees a Roles tab it would be bounced from.
   const sections: AdminSection[] = ["overview"];
+  if (can(user, "hotels.view")) sections.push("hotels");
   if (can(user, "agencies.view")) sections.push("agencies");
   if (can(user, "staff.view")) sections.push("staff");
   if (can(user, "settings.roles.manage")) sections.push("roles");

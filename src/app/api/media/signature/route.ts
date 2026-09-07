@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createUploadSignature, UPLOAD_FOLDERS } from "@/shared/lib/cloudinary";
 import { rateLimit } from "@/shared/lib/rate-limit";
 import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
+import { can } from "@/modules/auth/domain/user";
 
 /**
  * Issues a short-lived, single-use Cloudinary upload signature (CLAUDE.md §4).
@@ -14,10 +15,23 @@ import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
  * in CLAUDE.md §15: the endpoint mints signatures against a billable
  * Cloudinary account, so it must not be reachable anonymously.
  *
- * Defence in depth here is: an active session, a rate limit, and a folder that
- * is pinned server-side so a caller cannot choose an arbitrary upload path.
- * Phase 3 adds a per-folder permission check when real media features land.
+ * Defence in depth here is: an active session, the permission that governs the
+ * requested folder, a rate limit, and a folder path pinned server-side so a
+ * caller cannot choose an arbitrary destination.
  */
+
+/**
+ * Which permission each upload destination requires. Added in Phase 3a, when
+ * the first real media feature (hotel photography) started using this — until
+ * then any signed-in user could mint a signature for any folder.
+ */
+const FOLDER_PERMISSIONS: Record<keyof typeof UPLOAD_FOLDERS, string | null> = {
+  // The Phase 0 verification page; any active account may exercise it.
+  "phase0-test": null,
+  hotels: "hotels.media.manage",
+  banners: "cms.content.publish",
+  documents: "agencies.update",
+};
 
 const requestSchema = z.object({
   folder: z.enum(Object.keys(UPLOAD_FOLDERS) as [keyof typeof UPLOAD_FOLDERS]),
@@ -56,6 +70,12 @@ export async function POST(request: Request) {
       { error: "Invalid request.", issues: parsed.error.flatten().fieldErrors },
       { status: 400 },
     );
+  }
+
+  // A signature is only issued for a folder the caller may actually write to.
+  const required = FOLDER_PERMISSIONS[parsed.data.folder];
+  if (required && !can(user, required)) {
+    return NextResponse.json({ error: "Not permitted for this folder." }, { status: 403 });
   }
 
   try {
