@@ -6,6 +6,7 @@ import {
   LuHotel,
   LuLayoutDashboard,
   LuScrollText,
+  LuSettings,
   LuShieldCheck,
   LuUsers,
 } from "react-icons/lu";
@@ -22,7 +23,8 @@ import { cn } from "@/shared/lib/cn";
  * convenience, not a control: the page behind it re-checks (CLAUDE.md §12).
  */
 
-export type AdminSection = "overview" | "hotels" | "agencies" | "staff" | "roles" | "audit";
+export type AdminSection =
+  "overview" | "hotels" | "agencies" | "staff" | "roles" | "settings" | "audit";
 
 const SECTIONS: { key: AdminSection; href: string; icon: IconType }[] = [
   { key: "overview", href: "/admin", icon: LuLayoutDashboard },
@@ -30,6 +32,7 @@ const SECTIONS: { key: AdminSection; href: string; icon: IconType }[] = [
   { key: "agencies", href: "/admin/agencies", icon: LuBuilding2 },
   { key: "staff", href: "/admin/staff", icon: LuUsers },
   { key: "roles", href: "/admin/roles", icon: LuShieldCheck },
+  { key: "settings", href: "/admin/settings", icon: LuSettings },
   { key: "audit", href: "/admin/audit", icon: LuScrollText },
 ];
 

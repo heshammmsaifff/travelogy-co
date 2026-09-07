@@ -302,7 +302,8 @@
       "staff": "Staff",
       "roles": "Roles & permissions",
       "audit": "Audit log",
-      "hotels": "Hotels"
+      "hotels": "Hotels",
+      "settings": "Settings"
     }
   },
   "access": {
@@ -946,6 +947,145 @@
       "imageSaveFailed": "Could not save the image.",
       "coverExists": "A cover image already exists.",
       "codeTaken": "That code is already in use."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "System configuration: external suppliers and markup.",
+    "suppliers": {
+      "title": "Suppliers",
+      "description": "External supplier credentials and activation."
+    },
+    "markup": {
+      "title": "Markup",
+      "description": "The margin added to contracted rates."
+    }
+  },
+  "suppliers": {
+    "title": "External suppliers",
+    "description": "Supplier keys are stored encrypted in Supabase Vault and are never shown again after saving.",
+    "empty": "No suppliers registered.",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "noAdapter": "No adapter in code",
+    "cannotEnable": "Enter every required credential before enabling.",
+    "test": "Test connection",
+    "testPassed": "Test passed",
+    "testFailed": "Test failed",
+    "credentials": "Credentials",
+    "set": "Stored",
+    "missing": "Not stored",
+    "notSet": "Not set yet",
+    "storedOn": "Last updated {date}",
+    "setValue": "Set",
+    "rotate": "Rotate",
+    "environmentLabel": "Environment",
+    "environment": {
+      "sandbox": "Sandbox",
+      "production": "Production"
+    },
+    "environmentChanged": "Environment changed.",
+    "credentialSaved": "Credential saved.",
+    "credentialCleared": "Credential removed.",
+    "setCredentialTitle": "Set {key}",
+    "setCredentialDescription": "The value is stored encrypted and will not be shown again. Rotating means entering a new value.",
+    "valueLabel": "Value",
+    "valueHint": "Sent to the server and written straight to Vault; it is never stored in an ordinary table.",
+    "vaultNote": "Credentials live in Supabase Vault and cannot be read from the browser or through any API.",
+    "clearConfirmTitle": "Remove this credential?",
+    "clearConfirmBody": "The supplier will stop working until a new value is entered.",
+    "disableConfirmTitle": "Disable this supplier?",
+    "disableConfirmBody": "Its results will no longer appear in agent search.",
+    "internalTitle": "Internal inventory",
+    "internalDescription": "Our own contracted stock is a permanent supplier that cannot be switched off, and appears in every search.",
+    "validation": {
+      "valueRequired": "A value is required."
+    },
+    "errors": {
+      "invalidCredential": "That credential input is not valid.",
+      "saveFailed": "Could not save.",
+      "noAdapter": "No adapter is implemented for this supplier."
+    }
+  },
+  "markup": {
+    "title": "Markup rules",
+    "description": "The margin added to the contracted rate to produce the price an agent is quoted.",
+    "listTitle": "Rules",
+    "precedence": "Most specific wins: agency + hotel, then hotel, then agency, then the global rule.",
+    "empty": "No rules yet.",
+    "add": "Rule",
+    "addTitle": "Add a markup rule",
+    "addDescription": "Choose the scope first, then the margin.",
+    "editTitle": "Edit rule",
+    "editLabel": "Edit rule",
+    "deleteLabel": "Delete rule",
+    "deleteConfirmTitle": "Delete this rule?",
+    "deleteConfirmBody": "The next most general rule will apply instead.",
+    "saved": "Rule saved.",
+    "deleted": "Rule deleted.",
+    "everything": "Everything",
+    "colScope": "Scope",
+    "colApplies": "Applies to",
+    "colMarkup": "Markup",
+    "colNote": "Note",
+    "scope": {
+      "global": "Global",
+      "agency": "Agency",
+      "hotel": "Hotel",
+      "agency_hotel": "Agency + hotel"
+    },
+    "fields": {
+      "scope": "Scope",
+      "scopeHint": "The most specific matching rule decides the price.",
+      "agency": "Agency",
+      "selectAgency": "Choose an agency",
+      "hotel": "Hotel",
+      "selectHotel": "Choose a hotel",
+      "markupType": "Markup type",
+      "markupValue": "Value",
+      "note": "Note"
+    },
+    "validation": {
+      "scopeMismatch": "The scope does not match the fields you filled."
+    },
+    "errors": {
+      "saveFailed": "Could not save the rule.",
+      "duplicateScope": "An active rule already covers that exact scope.",
+      "cannotDeleteGlobal": "The global rule cannot be deleted — without it, bookings would sell at cost."
+    }
+  },
+  "search": {
+    "navLabel": "Search hotels",
+    "title": "Hotel search",
+    "description": "Search available inventory and see your prices directly.",
+    "submit": "Search",
+    "noResults": "Nothing matches those criteria.",
+    "resultCount": "{hotels} hotels · {nights} nights",
+    "perNight": "{price} per night × {nights}",
+    "roomsLeft": "{count} rooms left",
+    "refundable": "Refundable",
+    "nonRefundable": "Non-refundable",
+    "externalSupplier": "External supplier",
+    "bookingComingSoon": "Completing a booking arrives in Phase 5 — this page covers search and pricing only for now.",
+    "fields": {
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "city": "City",
+      "cityPlaceholder": "e.g. Hurghada",
+      "hotelName": "Hotel name",
+      "adults": "Adults",
+      "children": "Children",
+      "rooms": "Rooms"
+    },
+    "validation": {
+      "checkOutBeforeCheckIn": "Check-out must be after check-in.",
+      "stayTooLong": "Search covers stays of up to 30 nights."
+    },
+    "errors": {
+      "searchFailed": "The search could not be completed. Please try again.",
+      "partialResults": "Partial results: {count} supplier(s) did not respond."
     }
   }
 }

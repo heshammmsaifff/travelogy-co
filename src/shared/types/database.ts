@@ -493,6 +493,63 @@ export type Database = {
         };
         Relationships: [];
       };
+      markup_rules: {
+        Row: {
+          agency_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          hotel_id: string | null;
+          id: string;
+          is_active: boolean;
+          markup_type: Database["public"]["Enums"]["charge_type"];
+          markup_value: number;
+          note: string | null;
+          scope: Database["public"]["Enums"]["markup_scope"];
+          updated_at: string;
+        };
+        Insert: {
+          agency_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          hotel_id?: string | null;
+          id?: string;
+          is_active?: boolean;
+          markup_type?: Database["public"]["Enums"]["charge_type"];
+          markup_value: number;
+          note?: string | null;
+          scope: Database["public"]["Enums"]["markup_scope"];
+          updated_at?: string;
+        };
+        Update: {
+          agency_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          hotel_id?: string | null;
+          id?: string;
+          is_active?: boolean;
+          markup_type?: Database["public"]["Enums"]["charge_type"];
+          markup_value?: number;
+          note?: string | null;
+          scope?: Database["public"]["Enums"]["markup_scope"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "markup_rules_agency_id_fkey";
+            columns: ["agency_id"];
+            isOneToOne: false;
+            referencedRelation: "agencies";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "markup_rules_hotel_id_fkey";
+            columns: ["hotel_id"];
+            isOneToOne: false;
+            referencedRelation: "hotels";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       meal_plans: {
         Row: {
           description_ar: string | null;
@@ -1035,6 +1092,92 @@ export type Database = {
           },
         ];
       };
+      supplier_credentials: {
+        Row: {
+          credential_key: string;
+          integration_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          vault_secret_id: string;
+        };
+        Insert: {
+          credential_key: string;
+          integration_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vault_secret_id: string;
+        };
+        Update: {
+          credential_key?: string;
+          integration_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vault_secret_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supplier_credentials_integration_id_fkey";
+            columns: ["integration_id"];
+            isOneToOne: false;
+            referencedRelation: "supplier_integrations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      supplier_integrations: {
+        Row: {
+          created_at: string;
+          description_ar: string | null;
+          description_en: string | null;
+          display_name_ar: string;
+          display_name_en: string;
+          environment: Database["public"]["Enums"]["supplier_environment"];
+          id: string;
+          is_enabled: boolean;
+          last_test_message: string | null;
+          last_test_ok: boolean | null;
+          last_tested_at: string | null;
+          priority: number;
+          provider_key: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          description_ar?: string | null;
+          description_en?: string | null;
+          display_name_ar: string;
+          display_name_en: string;
+          environment?: Database["public"]["Enums"]["supplier_environment"];
+          id?: string;
+          is_enabled?: boolean;
+          last_test_message?: string | null;
+          last_test_ok?: boolean | null;
+          last_tested_at?: string | null;
+          priority?: number;
+          provider_key: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          description_ar?: string | null;
+          description_en?: string | null;
+          display_name_ar?: string;
+          display_name_en?: string;
+          environment?: Database["public"]["Enums"]["supplier_environment"];
+          id?: string;
+          is_enabled?: boolean;
+          last_test_message?: string | null;
+          last_test_ok?: boolean | null;
+          last_tested_at?: string | null;
+          priority?: number;
+          provider_key?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       agency_status_counts: {
@@ -1057,8 +1200,13 @@ export type Database = {
       authorize: { Args: { p_permission: string }; Returns: boolean };
       bootstrap_super_admin: { Args: { p_email: string }; Returns: string };
       can_read_own_agency: { Args: never; Returns: boolean };
+      clear_supplier_credential: {
+        Args: { p_credential_key: string; p_provider_key: string };
+        Returns: undefined;
+      };
       current_agency_id: { Args: never; Returns: string };
       current_role_id: { Args: never; Returns: string };
+      enabled_supplier_keys: { Args: never; Returns: string[] };
       has_permission: {
         Args: { p_permission: string; p_user_id: string };
         Returns: boolean;
@@ -1066,14 +1214,73 @@ export type Database = {
       is_active_user: { Args: never; Returns: boolean };
       is_super_admin: { Args: { p_user_id?: string }; Returns: boolean };
       next_hotel_code: { Args: never; Returns: string };
+      read_supplier_credential: {
+        Args: { p_credential_key: string; p_provider_key: string };
+        Returns: string;
+      };
       reject_agency: {
         Args: { p_agency_id: string; p_reason: string };
         Returns: undefined;
+      };
+      resolve_markup: {
+        Args: { p_agency_id: string; p_hotel_id: string };
+        Returns: {
+          markup_type: Database["public"]["Enums"]["charge_type"];
+          markup_value: number;
+          scope: Database["public"]["Enums"]["markup_scope"];
+        }[];
+      };
+      search_availability: {
+        Args: {
+          p_adults?: number;
+          p_check_in: string;
+          p_check_out: string;
+          p_children?: number;
+          p_city?: string;
+          p_country?: string;
+          p_query?: string;
+          p_rooms?: number;
+        };
+        Returns: {
+          city_ar: string;
+          city_en: string;
+          country_code: string;
+          cover_url: string;
+          currency_code: string;
+          hotel_code: string;
+          hotel_id: string;
+          is_refundable: boolean;
+          max_occupancy: number;
+          meal_plan_key: string;
+          name_ar: string;
+          name_en: string;
+          nights: number;
+          plan_name_ar: string;
+          plan_name_en: string;
+          property_type: Database["public"]["Enums"]["property_type"];
+          rate_plan_id: string;
+          room_code: string;
+          room_name_ar: string;
+          room_name_en: string;
+          room_type_id: string;
+          rooms_available: number;
+          sell_per_night: number;
+          sell_total: number;
+          star_rating: number;
+        }[];
       };
       set_agency_status: {
         Args: {
           p_agency_id: string;
           p_status: Database["public"]["Enums"]["agency_status"];
+        };
+        Returns: undefined;
+      };
+      set_supplier_credential: {
+        Args: {
+          p_credential_key: string;
+          p_provider_key: string;
+          p_value: string;
         };
         Returns: undefined;
       };
@@ -1091,12 +1298,14 @@ export type Database = {
       agency_status: "pending" | "active" | "suspended" | "rejected";
       charge_type: "percentage" | "fixed" | "nights";
       hotel_status: "draft" | "active" | "inactive";
+      markup_scope: "global" | "agency" | "hotel" | "agency_hotel";
       offer_type: "early_bird" | "long_stay" | "free_nights" | "discount";
       property_type:
         "hotel" | "resort" | "apartment" | "villa" | "guesthouse" | "hostel" | "boutique";
       rate_plan_status: "draft" | "active" | "inactive";
       role_scope: "admin" | "agent";
       room_status: "active" | "inactive";
+      supplier_environment: "sandbox" | "production";
       user_status: "pending" | "active" | "suspended" | "rejected";
     };
     CompositeTypes: {
@@ -1222,11 +1431,13 @@ export const Constants = {
       agency_status: ["pending", "active", "suspended", "rejected"],
       charge_type: ["percentage", "fixed", "nights"],
       hotel_status: ["draft", "active", "inactive"],
+      markup_scope: ["global", "agency", "hotel", "agency_hotel"],
       offer_type: ["early_bird", "long_stay", "free_nights", "discount"],
       property_type: ["hotel", "resort", "apartment", "villa", "guesthouse", "hostel", "boutique"],
       rate_plan_status: ["draft", "active", "inactive"],
       role_scope: ["admin", "agent"],
       room_status: ["active", "inactive"],
+      supplier_environment: ["sandbox", "production"],
       user_status: ["pending", "active", "suspended", "rejected"],
     },
   },

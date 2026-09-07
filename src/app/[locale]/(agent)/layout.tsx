@@ -53,6 +53,12 @@ export default async function AgentLayout({
             {user.agency ? (
               <span className="truncate text-sm text-ink-muted">{user.agency.name}</span>
             ) : null}
+            <Link
+              href="/agent/search"
+              className="rounded-control px-2.5 py-1 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink"
+            >
+              {t("search.navLabel")}
+            </Link>
           </div>
 
           <div className="flex items-center gap-2">

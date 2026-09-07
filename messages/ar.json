@@ -302,7 +302,8 @@
       "staff": "الموظفون",
       "roles": "الأدوار والصلاحيات",
       "audit": "سجل التدقيق",
-      "hotels": "الفنادق"
+      "hotels": "الفنادق",
+      "settings": "الإعدادات"
     }
   },
   "access": {
@@ -946,6 +947,145 @@
       "imageSaveFailed": "تعذّر حفظ الصورة.",
       "coverExists": "توجد صورة رئيسية بالفعل.",
       "codeTaken": "هذا الرمز مستخدم بالفعل."
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "description": "إعدادات النظام: الموردون الخارجيون وهوامش الربح.",
+    "suppliers": {
+      "title": "الموردون",
+      "description": "مفاتيح الموردين الخارجيين وتفعيلهم."
+    },
+    "markup": {
+      "title": "هوامش الربح",
+      "description": "الهامش المضاف على أسعار العقود."
+    }
+  },
+  "suppliers": {
+    "title": "الموردون الخارجيون",
+    "description": "مفاتيح الموردين تُحفظ مشفّرة في Supabase Vault ولا تظهر أبدًا بعد حفظها.",
+    "empty": "لا يوجد موردون مسجّلون.",
+    "enabled": "مفعّل",
+    "disabled": "موقوف",
+    "enable": "تفعيل",
+    "disable": "إيقاف",
+    "noAdapter": "لا يوجد محوّل في الكود",
+    "cannotEnable": "أدخل كل المفاتيح المطلوبة قبل التفعيل.",
+    "test": "اختبار الاتصال",
+    "testPassed": "نجح الاختبار",
+    "testFailed": "فشل الاختبار",
+    "credentials": "المفاتيح",
+    "set": "محفوظ",
+    "missing": "غير محفوظ",
+    "notSet": "لم يُحفظ بعد",
+    "storedOn": "آخر تحديث {date}",
+    "setValue": "إدخال",
+    "rotate": "تغيير",
+    "environmentLabel": "البيئة",
+    "environment": {
+      "sandbox": "تجريبية",
+      "production": "إنتاج"
+    },
+    "environmentChanged": "تم تغيير البيئة.",
+    "credentialSaved": "تم حفظ المفتاح.",
+    "credentialCleared": "تم حذف المفتاح.",
+    "setCredentialTitle": "إدخال قيمة {key}",
+    "setCredentialDescription": "القيمة تُحفظ مشفّرة ولن تظهر مرة أخرى. التغيير معناه إدخال قيمة جديدة.",
+    "valueLabel": "القيمة",
+    "valueHint": "تُرسل للخادم وتُخزَّن في Vault مباشرة؛ لا تُحفظ في أي جدول عادي.",
+    "vaultNote": "المفاتيح مخزّنة في Supabase Vault ولا يمكن قراءتها من المتصفح ولا من أي واجهة برمجية.",
+    "clearConfirmTitle": "حذف هذا المفتاح؟",
+    "clearConfirmBody": "سيتوقف المورد عن العمل حتى تُدخل قيمة جديدة.",
+    "disableConfirmTitle": "إيقاف هذا المورد؟",
+    "disableConfirmBody": "لن تظهر نتائجه في بحث الوكلاء.",
+    "internalTitle": "المخزون الداخلي",
+    "internalDescription": "مخزوننا الخاص مورد دائم لا يمكن إيقافه، ويظهر في كل بحث.",
+    "validation": {
+      "valueRequired": "القيمة مطلوبة."
+    },
+    "errors": {
+      "invalidCredential": "بيانات المفتاح غير صحيحة.",
+      "saveFailed": "تعذّر الحفظ.",
+      "noAdapter": "لا يوجد محوّل مبرمج لهذا المورد."
+    }
+  },
+  "markup": {
+    "title": "هوامش الربح",
+    "description": "الهامش المضاف على سعر العقد للوصول لسعر البيع المعروض للوكيل.",
+    "listTitle": "القواعد",
+    "precedence": "الأخص يفوز: وكالة+فندق، ثم فندق، ثم وكالة، ثم القاعدة العامة.",
+    "empty": "لا توجد قواعد.",
+    "add": "قاعدة",
+    "addTitle": "إضافة قاعدة هامش",
+    "addDescription": "حدد النطاق أولًا ثم قيمة الهامش.",
+    "editTitle": "تعديل القاعدة",
+    "editLabel": "تعديل القاعدة",
+    "deleteLabel": "حذف القاعدة",
+    "deleteConfirmTitle": "حذف هذه القاعدة؟",
+    "deleteConfirmBody": "ستُطبَّق القاعدة الأعم بدلًا منها.",
+    "saved": "تم حفظ القاعدة.",
+    "deleted": "تم حذف القاعدة.",
+    "everything": "كل الحجوزات",
+    "colScope": "النطاق",
+    "colApplies": "تنطبق على",
+    "colMarkup": "الهامش",
+    "colNote": "ملاحظة",
+    "scope": {
+      "global": "عام",
+      "agency": "وكالة",
+      "hotel": "فندق",
+      "agency_hotel": "وكالة + فندق"
+    },
+    "fields": {
+      "scope": "النطاق",
+      "scopeHint": "الأخص يفوز على الأعم عند تحديد السعر.",
+      "agency": "الوكالة",
+      "selectAgency": "اختر وكالة",
+      "hotel": "الفندق",
+      "selectHotel": "اختر فندقًا",
+      "markupType": "نوع الهامش",
+      "markupValue": "القيمة",
+      "note": "ملاحظة"
+    },
+    "validation": {
+      "scopeMismatch": "النطاق لا يطابق الحقول المحددة."
+    },
+    "errors": {
+      "saveFailed": "تعذّر حفظ القاعدة.",
+      "duplicateScope": "توجد قاعدة مفعّلة بنفس النطاق بالفعل.",
+      "cannotDeleteGlobal": "لا يمكن حذف القاعدة العامة — بدونها سيُباع بسعر التكلفة."
+    }
+  },
+  "search": {
+    "navLabel": "بحث الفنادق",
+    "title": "بحث الفنادق",
+    "description": "ابحث في المخزون المتاح واحصل على أسعار البيع مباشرة.",
+    "submit": "بحث",
+    "noResults": "لا توجد نتائج مطابقة لهذه المعايير.",
+    "resultCount": "{hotels} فندق · {nights} ليالٍ",
+    "perNight": "{price} لليلة × {nights}",
+    "roomsLeft": "متبقٍ {count} غرف",
+    "refundable": "قابل للاسترداد",
+    "nonRefundable": "غير قابل للاسترداد",
+    "externalSupplier": "مورد خارجي",
+    "bookingComingSoon": "إتمام الحجز يبدأ في المرحلة 5 — هذه الصفحة للبحث والأسعار فقط حاليًا.",
+    "fields": {
+      "checkIn": "تاريخ الوصول",
+      "checkOut": "تاريخ المغادرة",
+      "city": "المدينة",
+      "cityPlaceholder": "مثال: الغردقة",
+      "hotelName": "اسم الفندق",
+      "adults": "البالغون",
+      "children": "الأطفال",
+      "rooms": "الغرف"
+    },
+    "validation": {
+      "checkOutBeforeCheckIn": "تاريخ المغادرة يجب أن يكون بعد تاريخ الوصول.",
+      "stayTooLong": "أقصى مدة إقامة في البحث ٣٠ ليلة."
+    },
+    "errors": {
+      "searchFailed": "تعذّر إتمام البحث. حاول مرة أخرى.",
+      "partialResults": "نتائج جزئية: {count} مورد لم يستجب."
     }
   }
 }

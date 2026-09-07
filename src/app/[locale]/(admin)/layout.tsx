@@ -47,6 +47,8 @@ export default async function AdminLayout({
   if (can(user, "agencies.view")) sections.push("agencies");
   if (can(user, "staff.view")) sections.push("staff");
   if (can(user, "settings.roles.manage")) sections.push("roles");
+  if (can(user, "settings.suppliers.manage") || can(user, "settings.markup.manage"))
+    sections.push("settings");
   if (can(user, "audit.view")) sections.push("audit");
 
   return (
