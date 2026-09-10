@@ -13,7 +13,7 @@ import { createClient } from "@/shared/lib/supabase/server";
 export type RoleSummary = {
   id: string;
   key: string;
-  scope: "admin" | "agent";
+  scope: "admin" | "agent" | "driver";
   nameAr: string;
   nameEn: string;
   descriptionAr: string | null;
@@ -49,7 +49,7 @@ export async function listRoles(): Promise<RoleSummary[]> {
   return (data ?? []).map((r) => ({
     id: r.id,
     key: r.key,
-    scope: r.scope as "admin" | "agent",
+    scope: r.scope as "admin" | "agent" | "driver",
     nameAr: r.name_ar,
     nameEn: r.name_en,
     descriptionAr: r.description_ar,
@@ -60,6 +60,31 @@ export async function listRoles(): Promise<RoleSummary[]> {
     userCount: r.profiles?.[0]?.count ?? 0,
   }));
 }
+
+export type AgentRoleOption = {
+  id: string;
+  key: string;
+  nameAr: string;
+  nameEn: string;
+};
+
+export async function listAgentRoles(): Promise<AgentRoleOption[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("roles")
+    .select("id, key, name_ar, name_en")
+    .eq("scope", "agent")
+    .order("is_system", { ascending: false })
+    .order("name_en");
+
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    key: r.key,
+    nameAr: r.name_ar,
+    nameEn: r.name_en,
+  }));
+}
+
 
 export async function getRole(id: string) {
   const supabase = await createClient();
@@ -80,7 +105,7 @@ export async function getRole(id: string) {
   return {
     id: data.id,
     key: data.key,
-    scope: data.scope as "admin" | "agent",
+    scope: data.scope as "admin" | "agent" | "driver",
     nameAr: data.name_ar,
     nameEn: data.name_en,
     descriptionAr: data.description_ar,
@@ -165,14 +190,29 @@ export type AuditRow = {
   createdAt: string;
 };
 
-export async function listAuditLog(limit = 50, offset = 0) {
+export async function listAuditLog(
+  limit = 50,
+  offset = 0,
+  options?: { entityType?: string; search?: string },
+) {
   const supabase = await createClient();
 
-  const { data, count } = await supabase
+  let query = supabase
     .from("audit_log")
     .select("id, actor_email, action, entity_type, entity_id, changes, created_at", {
       count: "exact",
-    })
+    });
+
+  if (options?.entityType && options.entityType !== "all") {
+    query = query.eq("entity_type", options.entityType);
+  }
+
+  if (options?.search?.trim()) {
+    const term = options.search.trim();
+    query = query.or(`actor_email.ilike.%${term}%,action.ilike.%${term}%`);
+  }
+
+  const { data, count } = await query
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 

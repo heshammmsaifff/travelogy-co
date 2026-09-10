@@ -1,31 +1,22 @@
 import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@/shared/i18n/config";
-import { Link } from "@/shared/i18n/navigation";
 import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 import { Badge } from "@/shared/ui/badge";
+import { landingPathFor } from "@/modules/auth/domain/user";
 import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
 import { SignOutButton } from "@/modules/auth/presentation/sign-out-button";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/shared/ui/sidebar";
+import { AgentSidebar } from "@/modules/auth/presentation/agent-sidebar";
 
 /**
- * Guard for the agent portal.
- *
- * The proxy has already established that a session exists; this layout makes
- * the decision that needs the profile — right scope, active account — using
- * the query it has to run anyway to render the header (CLAUDE.md §11).
- *
- * This is a UI guard, not the security boundary. RLS is what actually stops an
- * agent reading another company's rows (§12); if this check were removed, the
- * page would render but return no data.
+ * Guard for the agent portal with Shadcn UI Sidebar.
  */
 export default async function AgentLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  // Next's generated route validator types this as `string`, so it cannot be
-  // narrowed here. The root layout has already 404'd anything that is not a
-  // configured locale, so the cast below is safe by the time we reach this.
   params: Promise<{ locale: string }>;
 }) {
   const { locale: rawLocale } = await params;
@@ -35,41 +26,61 @@ export default async function AgentLayout({
   const user = await getCurrentUser();
   if (!user) redirect(`/${locale}/login`);
   if (user.status !== "active") redirect(`/${locale}/pending`);
-  // A back-office user who lands here is sent to their own side rather than
-  // shown an error — it is a wrong turn, not a failure.
-  if (user.role.scope !== "agent") redirect(`/${locale}/admin`);
+  if (user.role.scope !== "agent") redirect(`/${locale}${landingPathFor(user)}`);
 
   const t = await getTranslations();
   const roleName = locale === "ar" ? user.role.nameAr : user.role.nameEn;
 
+  const userSummary = {
+    fullName: user.fullName,
+    role: {
+      nameAr: user.role.nameAr,
+      nameEn: user.role.nameEn,
+    },
+    agency: user.agency
+      ? {
+          id: user.agency.id,
+          name: user.agency.name,
+        }
+      : null,
+  };
+
   return (
-    <div className="min-h-dvh">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <Link href="/agent" className="text-base font-semibold tracking-tight text-ink">
-              {t("app.name")}
-            </Link>
-            {user.agency ? (
-              <span className="truncate text-sm text-ink-muted">{user.agency.name}</span>
-            ) : null}
-            <Link
-              href="/agent/search"
-              className="rounded-control px-2.5 py-1 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink"
-            >
-              {t("search.navLabel")}
-            </Link>
-          </div>
+    <SidebarProvider>
+      <div className="flex min-h-dvh w-full bg-canvas">
+        <AgentSidebar locale={locale} user={userSummary} />
+        <SidebarInset className="flex min-w-0 flex-1 flex-col">
+          {/* Top Sticky Header */}
+          <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface/95 px-4 backdrop-blur sm:px-6">
+            <div className="flex items-center gap-3">
+              <SidebarTrigger />
+              <span className="h-4 w-px bg-border hidden sm:inline-block" aria-hidden />
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold tracking-tight text-ink">
+                  {t("agent.nav.label")}
+                </span>
+                {user.agency ? (
+                  <span className="truncate text-xs font-semibold text-brand-600 bg-brand-50 border border-brand-100 px-2 py-0.5 rounded-full hidden sm:inline-block">
+                    {user.agency.name}
+                  </span>
+                ) : null}
+                <Badge tone="brand" className="hidden sm:inline-flex">
+                  {roleName}
+                </Badge>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <Badge tone="brand">{roleName}</Badge>
-            <LocaleSwitcher current={locale} label={t("common.language")} />
-            <SignOutButton locale={locale} variant="ghost" />
-          </div>
-        </div>
-      </header>
+            <div className="flex items-center gap-2">
+              <LocaleSwitcher current={locale} label={t("common.language")} />
+              <SignOutButton locale={locale} variant="ghost" size="sm" />
+            </div>
+          </header>
 
-      {children}
-    </div>
+          <div className="flex-1">
+            {children}
+          </div>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }

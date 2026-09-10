@@ -7,7 +7,9 @@ import type { Locale } from "@/shared/i18n/config";
 import { confirmAction } from "@/shared/lib/confirm";
 import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/button";
+import { CountrySelect } from "@/shared/ui/country-select";
 import { Input } from "@/shared/ui/input";
+import { PhoneInput } from "@/shared/ui/phone-input";
 import { Modal } from "@/shared/ui/modal";
 import {
   approveAgencyAction,
@@ -225,15 +227,13 @@ export function AgencyProfileForm({
         <Input name="legalName" defaultValue={agency.legalName ?? ""} label={t("legalName")} />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input name="phone" dir="ltr" defaultValue={agency.phone ?? ""} label={t("phone")} />
+        <PhoneInput name="phone" defaultValue={agency.phone ?? ""} label={t("phone")} />
         <Input name="website" dir="ltr" defaultValue={agency.website ?? ""} label={t("website")} />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input
+        <CountrySelect
           name="countryCode"
           required
-          maxLength={2}
-          dir="ltr"
           defaultValue={agency.countryCode}
           label={t("countryCode")}
         />

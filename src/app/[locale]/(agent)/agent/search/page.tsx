@@ -17,6 +17,9 @@ import { Card, CardBody, CardHeader } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { availabilitySearchSchema } from "@/modules/hotels/application/search.schemas";
 import { searchAllProviders } from "@/modules/hotels/infrastructure/providers/registry";
+import { listOpenQuotations } from "@/modules/bookings/infrastructure/quotations.repository";
+import { SaveOfferButton } from "@/modules/bookings/presentation/save-offer-button";
+import { BookRoomButton } from "@/modules/bookings/presentation/book-room-button";
 
 /** ISO date `days` from today, UTC. */
 function isoOffset(days: number): string {
@@ -67,6 +70,21 @@ export default async function AgentSearchPage({
     city: sp.city ?? "",
     q: sp.q ?? "",
   };
+
+  // Loaded once for the whole page: every "save" dialog offers the same list.
+  const openQuotations = parsed?.success ? await listOpenQuotations() : [];
+
+  // The stay these results answer, narrowed once so the offer cards can pass
+  // it along without a non-null assertion per field.
+  const stay = parsed?.success
+    ? {
+        checkIn: parsed.data.checkIn,
+        checkOut: parsed.data.checkOut,
+        adults: parsed.data.adults,
+        children: parsed.data.children,
+        rooms: parsed.data.rooms,
+      }
+    : null;
 
   let results: Awaited<ReturnType<typeof searchAllProviders>> | null = null;
   let searchError: string | null = null;
@@ -283,27 +301,80 @@ export default async function AgentSearchPage({
                           </p>
                         </div>
 
-                        <div className="text-end">
-                          <p className="text-lg font-semibold text-ink tabular-nums">
-                            {formatCurrency(offer.sellTotal, locale, offer.currencyCode)}
-                          </p>
-                          <p className="text-2xs text-ink-muted">
-                            {t("perNight", {
-                              price: formatCurrency(offer.sellPerNight, locale, offer.currencyCode),
-                              nights: formatNumber(offer.nights, locale),
-                            })}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <div className="text-end">
+                            {/* search_availability() prices ONE room for the
+                                stay; a booking for N rooms costs N times this.
+                                Showing the per-room figure as the total is how
+                                a multi-room booking came to be charged for one
+                                (§15, Phase 7). */}
+                            <p className="text-lg font-semibold text-ink tabular-nums">
+                              {formatCurrency(
+                                offer.sellTotal * (stay?.rooms ?? 1),
+                                locale,
+                                offer.currencyCode,
+                              )}
+                            </p>
+                            <p className="text-2xs text-ink-muted">
+                              {t("perNight", {
+                                price: formatCurrency(
+                                  offer.sellPerNight,
+                                  locale,
+                                  offer.currencyCode,
+                                ),
+                                nights: formatNumber(offer.nights, locale),
+                              })}
+                            </p>
+                          </div>
+
+                          {/* Everything the agent is looking at travels into the
+                              quotation, because the saved row is a snapshot of
+                              this moment rather than a pointer at a live rate. */}
+                          {stay ? (
+                            <SaveOfferButton
+                              openQuotations={openQuotations}
+                              stay={stay}
+                              offer={{
+                                supplierKey: hotel.supplierKey,
+                                hotelRef: hotel.hotelRef,
+                                roomRef: offer.roomRef,
+                                ratePlanRef: offer.ratePlanRef,
+                                offerRef: offer.offerRef,
+                                hotelNameAr: hotel.nameAr,
+                                hotelNameEn: hotel.nameEn,
+                                cityAr: hotel.cityAr,
+                                cityEn: hotel.cityEn,
+                                countryCode: hotel.countryCode,
+                                starRating: hotel.starRating ? String(hotel.starRating) : "",
+                                coverUrl: hotel.coverUrl ?? "",
+                                roomNameAr: offer.roomNameAr,
+                                roomNameEn: offer.roomNameEn,
+                                planNameAr: offer.planNameAr,
+                                planNameEn: offer.planNameEn,
+                                mealPlanKey: offer.mealPlanKey,
+                                nights: String(offer.nights),
+                                itemRooms: String(stay.rooms),
+                                currencyCode: offer.currencyCode,
+                                sellPerNight: String(offer.sellPerNight),
+                                sellTotal: String(offer.sellTotal),
+                                isRefundable: String(offer.isRefundable),
+                              }}
+                            />
+                          ) : null}
+
+                          {stay ? (
+                            <BookRoomButton
+                              roomTypeId={offer.roomRef}
+                              ratePlanId={offer.ratePlanRef}
+                              supplierKey={hotel.supplierKey}
+                              stay={stay}
+                            />
+                          ) : null}
                         </div>
                       </li>
                     ))}
                   </ul>
                 </CardBody>
-
-                {/* Booking is Phase 5. Saying so beats a button that does
-                    nothing, or worse, one that appears to book (§2.3). */}
-                <div className="border-t border-border bg-surface-sunken px-5 py-2.5 text-xs text-ink-muted">
-                  {t("bookingComingSoon")}
-                </div>
               </Card>
             ))}
           </div>

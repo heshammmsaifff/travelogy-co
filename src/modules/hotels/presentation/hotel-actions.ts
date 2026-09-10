@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/shared/lib/supabase/server";
 import { describeDbError } from "@/shared/lib/db-error";
+import { toHalfOpenRange } from "@/shared/lib/date-range";
+import { parseMapLink } from "@/shared/lib/map-link";
 import { requirePermission } from "@/modules/auth/infrastructure/guard";
 import {
   allocationBulkSchema,
@@ -76,17 +78,6 @@ function revalidateHotel(hotelId?: string) {
   if (hotelId) revalidatePath("/[locale]/admin/hotels/[id]", "layout");
 }
 
-/**
- * Turns the inclusive last night an admin typed into the half-open range
- * Postgres stores. Jun 1-30 becomes [2026-06-01, 2026-07-01), so the next
- * season starting Jul 1 meets it exactly — no overlap, no unpriced night.
- */
-function toHalfOpenRange(from: string, toInclusive: string): string {
-  const end = new Date(`${toInclusive}T00:00:00Z`);
-  end.setUTCDate(end.getUTCDate() + 1);
-  return `[${from},${end.toISOString().slice(0, 10)})`;
-}
-
 const emptyToNull = (v: string | undefined | null) => (v ? v : null);
 
 // ------------------------------------------------------------------- hotels
@@ -128,8 +119,11 @@ export async function createHotelAction(formData: FormData): Promise<Result> {
       area_en: emptyToNull(d.areaEn),
       address_ar: emptyToNull(d.addressAr),
       address_en: emptyToNull(d.addressEn),
-      latitude: d.latitude ?? null,
-      longitude: d.longitude ?? null,
+      location_url: d.locationUrl ?? null,
+      // Derived, never typed. A link with no coordinates in it (a shortened
+      // one) leaves these null rather than guessing — the form says so.
+      latitude: parseMapLink(d.locationUrl)?.latitude ?? null,
+      longitude: parseMapLink(d.locationUrl)?.longitude ?? null,
       phone: emptyToNull(d.phone),
       email: emptyToNull(d.email),
       website: emptyToNull(d.website),
@@ -179,8 +173,11 @@ export async function updateHotelAction(formData: FormData): Promise<Result> {
       area_en: emptyToNull(d.areaEn),
       address_ar: emptyToNull(d.addressAr),
       address_en: emptyToNull(d.addressEn),
-      latitude: d.latitude ?? null,
-      longitude: d.longitude ?? null,
+      location_url: d.locationUrl ?? null,
+      // Derived, never typed. A link with no coordinates in it (a shortened
+      // one) leaves these null rather than guessing — the form says so.
+      latitude: parseMapLink(d.locationUrl)?.latitude ?? null,
+      longitude: parseMapLink(d.locationUrl)?.longitude ?? null,
       phone: emptyToNull(d.phone),
       email: emptyToNull(d.email),
       website: emptyToNull(d.website),

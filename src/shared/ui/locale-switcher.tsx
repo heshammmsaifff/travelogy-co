@@ -14,7 +14,17 @@ import { cn } from "@/shared/lib/cn";
  * locale prefix, so the user stays on the same page when switching rather than
  * being dropped at the home page.
  */
-export function LocaleSwitcher({ current, label }: { current: Locale; label: string }) {
+export function LocaleSwitcher({
+  current,
+  label,
+  variant = "light",
+  className,
+}: {
+  current: Locale;
+  label: string;
+  variant?: "light" | "dark";
+  className?: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
@@ -29,13 +39,24 @@ export function LocaleSwitcher({ current, label }: { current: Locale; label: str
     });
   }
 
+  const isDark = variant === "dark";
+
   return (
     <div
-      className="inline-flex items-center gap-1 rounded-control border border-border bg-surface p-0.5"
+      className={cn(
+        "inline-flex items-center gap-1 rounded-control p-0.5 transition-colors",
+        isDark
+          ? "border border-[#D8AE4A]/30 bg-[#042D39] shadow-2xs"
+          : "border border-border bg-neutral-100/80 shadow-2xs",
+        className,
+      )}
       role="group"
       aria-label={label}
     >
-      <LuGlobe className="ms-1.5 size-3.5 shrink-0 text-ink-subtle" aria-hidden />
+      <LuGlobe
+        className={cn("ms-1.5 size-3.5 shrink-0", isDark ? "text-[#D8AE4A]" : "text-brand-500")}
+        aria-hidden
+      />
       {routing.locales.map((locale) => {
         const isActive = locale === current;
         return (
@@ -47,13 +68,18 @@ export function LocaleSwitcher({ current, label }: { current: Locale; label: str
             // Active state is exposed to assistive tech, not just painted on.
             aria-current={isActive ? "true" : undefined}
             className={cn(
-              "cursor-pointer rounded-[calc(var(--radius-control)-2px)] px-2.5 py-1 text-xs font-medium",
-              "transition-colors duration-150 ease-out-soft",
+              "rounded-[calc(var(--radius-control)-2px)] px-2.5 py-1 text-xs font-medium",
+              "transition-all duration-150 ease-out-soft",
               "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus",
-              "disabled:cursor-wait",
-              isActive
-                ? "bg-brand-600 text-ink-inverse"
-                : "text-ink-muted hover:bg-surface-hover hover:text-ink",
+              "disabled:cursor-wait disabled:opacity-60",
+              isActive ? "cursor-default" : "cursor-pointer",
+              isDark
+                ? isActive
+                  ? "bg-[#D8AE4A] text-[#063B4A] font-bold shadow-xs"
+                  : "text-white/80 hover:bg-white/10 hover:text-white"
+                : isActive
+                  ? "bg-brand-600 text-white font-semibold shadow-xs"
+                  : "text-ink-muted hover:bg-surface hover:text-ink hover:shadow-2xs",
             )}
           >
             {LOCALE_META[locale].nativeName}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { LuCopy, LuPlus, LuTriangleAlert } from "react-icons/lu";
 import type { Locale } from "@/shared/i18n/config";
@@ -9,6 +9,7 @@ import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Modal } from "@/shared/ui/modal";
+import { NativeSelect, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import type { RoleSummary, StaffRow } from "@/modules/auth/infrastructure/access.repository";
 import {
   createStaffAction,
@@ -36,6 +37,7 @@ function useResultToast() {
  * silently for real use. Recorded in CLAUDE.md §15.
  */
 export function CreateStaffButton({ roles }: { roles: RoleSummary[] }) {
+  const locale = useLocale();
   const t = useTranslations("access.staff");
   const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
@@ -128,27 +130,22 @@ export function CreateStaffButton({ roles }: { roles: RoleSummary[] }) {
             <Input name="fullName" required label={t("fields.fullName")} />
             <Input name="email" type="email" required dir="ltr" label={t("fields.email")} />
 
-            <div className="flex w-full flex-col gap-1.5">
-              <label htmlFor="staff-role" className="text-sm font-medium text-ink">
-                {t("fields.role")}
-              </label>
-              <select
-                id="staff-role"
-                name="roleId"
-                required
-                defaultValue=""
-                className="h-9 w-full cursor-pointer rounded-control border border-border-strong bg-surface px-3 text-sm text-ink focus-visible:outline-2 focus-visible:outline-focus"
-              >
-                <option value="" disabled>
-                  {t("selectRole")}
+            <NativeSelect
+              id="staff-role"
+              name="roleId"
+              required
+              defaultValue=""
+              label={t("fields.role")}
+            >
+              <option value="" disabled>
+                {t("selectRole")}
+              </option>
+              {assignable.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {locale === "ar" ? r.nameAr : r.nameEn}
                 </option>
-                {assignable.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.nameEn}
-                  </option>
-                ))}
-              </select>
-            </div>
+              ))}
+            </NativeSelect>
 
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
@@ -210,6 +207,7 @@ export function StaffRoleSelect({
   roles: RoleSummary[];
   disabled?: boolean;
 }) {
+  const locale = useLocale();
   const t = useTranslations("access.staff");
   const [pending, startTransition] = useTransition();
   const show = useResultToast();
@@ -217,20 +215,26 @@ export function StaffRoleSelect({
   const assignable = roles.filter((r) => r.scope === "admin");
 
   return (
-    <select
-      aria-label={t("changeRoleFor", { name: staff.fullName || staff.email })}
+    <Select
       defaultValue={staff.roleId}
       disabled={disabled || pending}
-      onChange={(e) =>
-        startTransition(async () => void show(await setStaffRoleAction(staff.id, e.target.value)))
+      onValueChange={(val) =>
+        startTransition(async () => void show(await setStaffRoleAction(staff.id, val)))
       }
-      className="h-8 cursor-pointer rounded-control border border-border bg-surface px-2 text-xs text-ink focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {assignable.map((r) => (
-        <option key={r.id} value={r.id}>
-          {r.nameEn}
-        </option>
-      ))}
-    </select>
+      <SelectTrigger
+        aria-label={t("changeRoleFor", { name: staff.fullName || staff.email })}
+        className="h-8 text-xs min-w-[130px] bg-surface"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {assignable.map((r) => (
+          <SelectItem key={r.id} value={r.id}>
+            {locale === "ar" ? r.nameAr : r.nameEn}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

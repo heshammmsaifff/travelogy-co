@@ -58,7 +58,13 @@ export type SupplierOffer = {
 
   currencyCode: string;
   nights: number;
+  /**
+   * PER ROOM for the whole stay — not the booking total. A request for three
+   * rooms returns one offer priced for one of them; the caller multiplies.
+   * Every adapter must follow this, because the booking path does.
+   */
   sellTotal: number;
+  /** Per room, per night. */
   sellPerNight: number;
 
   isRefundable: boolean;

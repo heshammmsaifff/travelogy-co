@@ -5,6 +5,9 @@ import { Link } from "@/shared/i18n/navigation";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardBody, CardHeader } from "@/shared/ui/card";
+import { createClient } from "@/shared/lib/supabase/server";
+import { listActivities, listTasks } from "@/modules/crm/infrastructure/crm.repository";
+import { CrmPanel } from "@/modules/crm/presentation/crm-panel";
 import {
   TableBody,
   TableCell,
@@ -16,6 +19,7 @@ import {
 } from "@/shared/ui/table";
 import { can } from "@/modules/auth/domain/user";
 import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
+import { listAgentRoles } from "@/modules/auth/infrastructure/access.repository";
 import { getAgency } from "@/modules/agencies/infrastructure/agencies.repository";
 import {
   AgencyProfileForm,
@@ -23,6 +27,10 @@ import {
   CreditLimitForm,
   SuspendControl,
 } from "@/modules/agencies/presentation/agency-controls";
+import {
+  AgencyUserStatusButton,
+  CreateAgencyMemberButton,
+} from "@/modules/agencies/presentation/agency-member-controls";
 
 const STATUS_TONES = {
   pending: "warning",
@@ -49,10 +57,32 @@ export default async function AgencyDetailPage({
   const t = await getTranslations("agencies");
   const tCommon = await getTranslations("common");
 
+  const crm = can(user, "crm.view") || can(user, "crm.manage")
+    ? await (async () => {
+        const supabase = await createClient();
+        const [activities, tasks, { data: staff }] = await Promise.all([
+          listActivities({ agencyId: id }),
+          listTasks({ agencyId: id }),
+          supabase
+            .from("profiles")
+            .select("id, full_name")
+            .is("agency_id", null)
+            .order("full_name")
+            .limit(200),
+        ]);
+        return {
+          activities,
+          tasks,
+          people: (staff ?? []).map((p) => ({ id: p.id, name: p.full_name })),
+        };
+      })()
+    : null;
+
   const canApprove = can(user, "agencies.approve");
   const canSuspend = can(user, "agencies.suspend");
   const canSetCredit = can(user, "agencies.credit_limit.update");
   const canEdit = can(user, "agencies.update");
+  const agentRoles = canEdit ? await listAgentRoles() : [];
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
@@ -168,17 +198,30 @@ export default async function AgencyDetailPage({
       ) : null}
 
       <Card>
-        <CardHeader title={t("members.title")} description={t("members.description")} />
+        <CardHeader
+          title={t("members.title")}
+          description={t("members.description")}
+          actions={
+            canEdit && agentRoles.length > 0 ? (
+              <CreateAgencyMemberButton
+                agencyId={agency.id}
+                roles={agentRoles}
+                locale={locale}
+              />
+            ) : null
+          }
+        />
         <TableShell>
           <TableHead>
             <TableHeaderCell>{t("members.colName")}</TableHeaderCell>
             <TableHeaderCell>{t("members.colEmail")}</TableHeaderCell>
             <TableHeaderCell>{t("members.colRole")}</TableHeaderCell>
             <TableHeaderCell>{t("members.colStatus")}</TableHeaderCell>
+            {canSuspend ? <TableHeaderCell /> : null}
           </TableHead>
           <TableBody>
             {agency.members.length === 0 ? (
-              <TableEmpty colSpan={4}>{t("members.empty")}</TableEmpty>
+              <TableEmpty colSpan={canSuspend ? 5 : 4}>{t("members.empty")}</TableEmpty>
             ) : (
               agency.members.map((m) => (
                 <TableRow key={m.id}>
@@ -190,12 +233,38 @@ export default async function AgencyDetailPage({
                       {tCommon(`status.${m.status}`)}
                     </Badge>
                   </TableCell>
+                  {canSuspend ? (
+                    <TableCell>
+                      <div className="flex justify-end">
+                        <AgencyUserStatusButton
+                          agencyId={agency.id}
+                          member={m}
+                          currentUserId={user?.id}
+                          locale={locale}
+                        />
+                      </div>
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               ))
             )}
           </TableBody>
         </TableShell>
       </Card>
+
+      {/* Contact history and follow-up on an EXISTING agency — the second half
+          of what the CRM is for (§13, Phase 8d). Gated on its own permission:
+          holding `agencies.view` is not a reason to read the sales team's
+          notes about that company. */}
+      {crm ? (
+        <CrmPanel
+          subject={{ agencyId: id }}
+          activities={crm.activities}
+          tasks={crm.tasks}
+          assignees={crm.people}
+          locale={locale}
+        />
+      ) : null}
     </main>
   );
 }

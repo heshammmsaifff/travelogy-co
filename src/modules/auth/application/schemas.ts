@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isCountryCode } from "@/shared/lib/countries";
+
 /**
  * Auth input schemas.
  *
@@ -51,7 +53,14 @@ export const registerSchema = z
       .string()
       .trim()
       .regex(/^\+?[\d\s-]{7,20}$/, "auth.validation.phoneInvalid"),
-    countryCode: z.string().trim().length(2, "auth.validation.countryRequired").toUpperCase(),
+    countryCode: z
+      .string()
+      .trim()
+      .length(2, "auth.validation.countryRequired")
+      .toUpperCase()
+      // The picker only offers real codes; this is the server half of that,
+      // because a form field is a suggestion and a POST body is not (§12).
+      .refine(isCountryCode, "auth.validation.countryRequired"),
     city: z.string().trim().max(120).optional().or(z.literal("")),
     commercialRegNo: z.string().trim().max(60).optional().or(z.literal("")),
     taxId: z.string().trim().max(60).optional().or(z.literal("")),

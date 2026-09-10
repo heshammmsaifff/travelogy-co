@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { isCountryCode } from "@/shared/lib/countries";
+import { isSafeHttpUrl } from "@/shared/lib/map-link";
+
 /**
  * Hotel module input schemas (CLAUDE.md §3: defined once, used by the form
  * resolver and the Server Action). Messages are i18n keys (§5).
@@ -75,15 +78,34 @@ export const hotelDetailsSchema = z.object({
   propertyType: z.enum(PROPERTY_TYPES),
   starRating: optionalNumber({ min: 1, max: 7, int: true }),
 
-  countryCode: z.string().trim().length(2, "auth.validation.countryRequired").toUpperCase(),
+  countryCode: z
+    .string()
+    .trim()
+    .length(2, "auth.validation.countryRequired")
+    .toUpperCase()
+    .refine(isCountryCode, "auth.validation.countryRequired"),
   cityAr: bilingual("city", 2, 120).ar,
   cityEn: bilingual("city", 2, 120).en,
   areaAr: optionalText(120),
   areaEn: optionalText(120),
   addressAr: optionalText(400),
   addressEn: optionalText(400),
-  latitude: optionalNumber({ min: -90, max: 90 }),
-  longitude: optionalNumber({ min: -180, max: 180 }),
+  /**
+   * A map link, not two numbers. The coordinates are parsed out of it in the
+   * action and stored alongside — see `shared/lib/map-link.ts` for why both
+   * are kept.
+   */
+  locationUrl: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z
+      .string()
+      .trim()
+      .max(2000)
+      // http(s) only: an admin-entered `javascript:` URL that another admin
+      // later clicks is a stored-XSS vector (§12).
+      .refine(isSafeHttpUrl, "hotels.errors.invalidLocationUrl")
+      .optional(),
+  ),
 
   phone: optionalText(30),
   email: z.union([z.string().trim().email("auth.validation.emailInvalid"), z.literal("")]),

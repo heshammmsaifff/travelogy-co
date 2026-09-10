@@ -1,8 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { LuShieldCheck, LuUsers } from "react-icons/lu";
+import { LuChevronLeft, LuChevronRight, LuShieldCheck, LuUsers } from "react-icons/lu";
 import type { Locale } from "@/shared/i18n/config";
-import { formatNumber } from "@/shared/lib/format";
-import { Badge } from "@/shared/ui/badge";
+import { formatDate, formatNumber } from "@/shared/lib/format";
+import { Link } from "@/shared/i18n/navigation";
+import { buttonVariants } from "@/shared/ui/button-variants";
 import { Card, CardBody, CardHeader } from "@/shared/ui/card";
 import {
   TableBody,
@@ -18,12 +19,10 @@ import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
 import { can } from "@/modules/auth/domain/user";
 
 /**
- * Back-office dashboard shell.
+ * Back-office dashboard.
  *
- * Shows the two things Phase 1 actually produced: pending registration
- * requests, and the role/permission model. Approving an agent is Phase 2, so
- * the list is read-only here and says so rather than offering a button that
- * would do nothing (CLAUDE.md §2.3).
+ * Provides a live overview of the platform: pending registration requests awaiting review,
+ * and the role/permission access model. Links directly to agency review workflows.
  */
 export default async function AdminDashboard({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
@@ -31,8 +30,9 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
 
   const user = await getCurrentUser();
   const t = await getTranslations("admin.dashboard");
-  const tCommon = await getTranslations("common");
   const supabase = await createClient();
+
+  const Chevron = locale === "ar" ? LuChevronLeft : LuChevronRight;
 
   // §11: explicit columns, bounded page — never an unbounded table read.
   const canViewAgencies = can(user, "agencies.view");
@@ -100,7 +100,17 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
         <CardHeader
           title={t("requests.title")}
           description={t("requests.description")}
-          actions={<Badge tone="warning">{tCommon("comingSoon")}</Badge>}
+          actions={
+            canViewAgencies ? (
+              <Link
+                href="/admin/agencies"
+                className={buttonVariants({ variant: "secondary", size: "sm" })}
+              >
+                {t("requests.viewAll")}
+                <Chevron className="size-4 ms-1" aria-hidden />
+              </Link>
+            ) : null
+          }
         />
         <TableShell>
           <TableHead>
@@ -108,21 +118,49 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
             <TableHeaderCell>{t("requests.colCompany")}</TableHeaderCell>
             <TableHeaderCell>{t("requests.colEmail")}</TableHeaderCell>
             <TableHeaderCell>{t("requests.colCountry")}</TableHeaderCell>
+            <TableHeaderCell>{t("requests.colDate")}</TableHeaderCell>
+            <TableHeaderCell />
           </TableHead>
           <TableBody>
             {(pendingAgencies ?? []).length === 0 ? (
-              <TableEmpty colSpan={4}>
+              <TableEmpty colSpan={6}>
                 {canViewAgencies ? t("requests.empty") : t("requests.noPermission")}
               </TableEmpty>
             ) : (
               (pendingAgencies ?? []).map((a) => (
                 <TableRow key={a.id}>
                   <TableCell className="font-mono text-xs" dir="ltr">
-                    {a.code}
+                    <Link
+                      href={`/admin/agencies/${a.id}`}
+                      className="font-medium text-brand-700 hover:underline"
+                    >
+                      {a.code}
+                    </Link>
                   </TableCell>
-                  <TableCell>{a.name}</TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/admin/agencies/${a.id}`}
+                      className="font-medium text-ink hover:text-brand-700 hover:underline"
+                    >
+                      {a.name}
+                    </Link>
+                  </TableCell>
                   <TableCell dir="ltr">{a.email}</TableCell>
                   <TableCell dir="ltr">{a.country_code}</TableCell>
+                  <TableCell className="text-xs text-ink-muted">
+                    {formatDate(a.created_at, locale)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end">
+                      <Link
+                        href={`/admin/agencies/${a.id}`}
+                        aria-label={t("requests.reviewAction", { name: a.name })}
+                        className="rounded-control p-1.5 text-ink-subtle hover:bg-surface-hover hover:text-ink"
+                      >
+                        <Chevron className="size-4" aria-hidden />
+                      </Link>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}

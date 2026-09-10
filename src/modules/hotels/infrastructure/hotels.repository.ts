@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/shared/lib/supabase/server";
+import { parseDateRange } from "@/shared/lib/date-range";
 import type { HotelListFilters } from "@/modules/hotels/application/schemas";
 
 /**
@@ -98,7 +99,7 @@ export async function getHotel(id: string) {
     .select(
       `id, code, name_ar, name_en, description_ar, description_en, property_type, star_rating,
        country_code, city_ar, city_en, area_ar, area_en, address_ar, address_en,
-       latitude, longitude, phone, email, website, check_in_time, check_out_time,
+       latitude, longitude, location_url, phone, email, website, check_in_time, check_out_time,
        status, internal_notes, created_at,
        hotel_amenities(amenity_key)`,
     )
@@ -125,6 +126,7 @@ export async function getHotel(id: string) {
     addressEn: data.address_en,
     latitude: data.latitude,
     longitude: data.longitude,
+    locationUrl: data.location_url,
     phone: data.phone,
     email: data.email,
     website: data.website,
@@ -316,22 +318,6 @@ export async function listRates(ratePlanId: string) {
       isClosed: r.is_closed,
     };
   });
-}
-
-/**
- * `[2026-06-01,2026-07-01)` -> { from: "2026-06-01", to: "2026-06-30" }.
- *
- * The stored upper bound is exclusive (the morning of departure); admins think
- * in last-night-inclusive seasons, so one day is subtracted for display. The
- * inverse happens in the action before writing.
- */
-function parseDateRange(raw: string): { from: string; to: string } {
-  const match = /^\[?([\d-]+),([\d-]+)\)?$/.exec(raw ?? "");
-  if (!match?.[1] || !match[2]) return { from: "", to: "" };
-
-  const upper = new Date(`${match[2]}T00:00:00Z`);
-  upper.setUTCDate(upper.getUTCDate() - 1);
-  return { from: match[1], to: upper.toISOString().slice(0, 10) };
 }
 
 export async function listCancellationPolicies(hotelId: string) {

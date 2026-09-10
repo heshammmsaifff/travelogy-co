@@ -14,6 +14,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ local
       locale={locale}
       title={t("register.title")}
       subtitle={t("register.subtitle")}
+      cardClassName="max-w-xl"
       footer={
         <span>
           {t("register.haveAccount")}{" "}

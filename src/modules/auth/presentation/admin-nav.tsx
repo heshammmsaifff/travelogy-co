@@ -3,12 +3,21 @@
 import { useTranslations } from "next-intl";
 import {
   LuBuilding2,
+  LuCalendarClock,
+  LuChartNoAxesColumn,
+  LuNewspaper,
+  LuWallet,
   LuHotel,
   LuLayoutDashboard,
   LuScrollText,
   LuSettings,
   LuShieldCheck,
   LuUsers,
+  LuBus,
+  LuIdCard,
+  LuClipboardList,
+  LuMapPinned,
+  LuHandshake,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 import { Link, usePathname } from "@/shared/i18n/navigation";
@@ -24,14 +33,38 @@ import { cn } from "@/shared/lib/cn";
  */
 
 export type AdminSection =
-  "overview" | "hotels" | "agencies" | "staff" | "roles" | "settings" | "audit";
+  | "overview"
+  | "bookings"
+  | "finance"
+  | "content"
+  | "reports"
+  | "hotels"
+  | "transfers"
+  | "packages"
+  | "dispatch"
+  | "drivers"
+  | "agencies"
+  | "crm"
+  | "staff"
+  | "roles"
+  | "settings"
+  | "audit";
 
 const SECTIONS: { key: AdminSection; href: string; icon: IconType }[] = [
   { key: "overview", href: "/admin", icon: LuLayoutDashboard },
+  { key: "bookings", href: "/admin/bookings", icon: LuCalendarClock },
   { key: "hotels", href: "/admin/hotels", icon: LuHotel },
+  { key: "transfers", href: "/admin/transfers", icon: LuBus },
+  { key: "packages", href: "/admin/packages", icon: LuMapPinned },
+  { key: "dispatch", href: "/admin/dispatch", icon: LuClipboardList },
+  { key: "drivers", href: "/admin/drivers", icon: LuIdCard },
+  { key: "finance", href: "/admin/finance", icon: LuWallet },
   { key: "agencies", href: "/admin/agencies", icon: LuBuilding2 },
+  { key: "crm", href: "/admin/crm", icon: LuHandshake },
+  { key: "content", href: "/admin/content", icon: LuNewspaper },
   { key: "staff", href: "/admin/staff", icon: LuUsers },
   { key: "roles", href: "/admin/roles", icon: LuShieldCheck },
+  { key: "reports", href: "/admin/reports", icon: LuChartNoAxesColumn },
   { key: "settings", href: "/admin/settings", icon: LuSettings },
   { key: "audit", href: "/admin/audit", icon: LuScrollText },
 ];

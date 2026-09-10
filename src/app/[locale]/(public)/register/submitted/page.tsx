@@ -3,7 +3,7 @@ import { LuMailCheck } from "react-icons/lu";
 import type { Locale } from "@/shared/i18n/config";
 import { Link } from "@/shared/i18n/navigation";
 import { AuthShell } from "@/modules/auth/presentation/auth-shell";
-import { Button } from "@/shared/ui/button";
+import { buttonVariants } from "@/shared/ui/button-variants";
 
 /**
  * Shown after a registration is submitted.
@@ -34,9 +34,12 @@ export default async function RegisterSubmittedPage({
           <li>{t("step2")}</li>
           <li>{t("step3")}</li>
         </ol>
-        <Button asChild variant="secondary" className="w-full">
-          <Link href="/login">{t("backToLogin")}</Link>
-        </Button>
+        <Link
+          href="/login"
+          className={buttonVariants({ variant: "secondary", className: "w-full" })}
+        >
+          {t("backToLogin")}
+        </Link>
       </div>
     </AuthShell>
   );

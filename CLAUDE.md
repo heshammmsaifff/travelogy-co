@@ -146,18 +146,21 @@ Access control is **dynamic**. The `super_admin` creates roles and decides exact
 
 ### System roles (protected)
 
-These four always exist. They cannot be deleted or renamed, and that is enforced by a database constraint, not merely hidden in the UI:
+These five always exist. They cannot be deleted or renamed, and that is enforced by a database trigger, not merely hidden in the UI:
 
 - `super_admin` — implicitly holds **every** permission, including permission management itself. Never evaluated against the permission table; it short-circuits to "allowed" (see the lockout rule below).
 - `staff` — the baseline back-office role. Its permission set *is* editable.
 - `agent_owner` — the primary user of a registered agent company; manages that company's profile and sub-users.
 - `agent_user` — a sub-user under an agent company, scoped by the `agent_owner`.
+- `driver` — added in Phase 8b. Belongs to no agency, holds no permission keys,
+  and sees only the transfer jobs assigned to them — never a price. Their
+  access comes from the assignment row, not from a grant (§15, 16.1).
 
 ### Custom roles
 
 The `super_admin` can create any number of additional **back-office** roles — "Reservations Officer", "Accountant", "Content Editor" — and tick exactly which permissions each one holds.
 
-Agent-side permissions remain with the `agent_owner`, who assigns them to sub-users inside their own company. Roles carry a `scope` column (`admin` | `agent`) from the first migration, so client-defined agent roles can be introduced later without reshaping the schema — but only `admin`-scoped custom roles are built in Phase 2.
+Agent-side permissions remain with the `agent_owner`, who assigns them to sub-users inside their own company. Roles carry a `scope` column (`admin` | `agent` | `driver`) from the first migration, so client-defined agent roles can be introduced later without reshaping the schema — but only `admin`-scoped custom roles are built in Phase 2. **A layout that turns someone away must send them to `landingPathFor(user)`, never to the other side by name** — with three scopes, "not admin" no longer means "agent" (§15, 16.x).
 
 ### Permissions
 
@@ -289,7 +292,12 @@ RLS audit, rate-limiting review, caching/query performance pass, image pipeline 
 - If a phase needs a decision this file doesn't cover, ask rather than guessing silently, then record the decision back into this file so it isn't re-litigated next session.
 - If an environment variable needed for the current phase is empty, stop and ask for it.
 - All Supabase schema changes go through a migration file + `supabase db push` as described in §4 — never a manual edit made straight in the Supabase dashboard/SQL editor that isn't also captured as a migration in the repo.
-- Commit logically (e.g. one commit per phase or per meaningful sub-step) with clear messages.
+- **Do not run `git add`, `git commit` or `git push`.** The client stages and commits
+  everything themselves so they can review the work first (decided 2026-09-08, replacing
+  the earlier "commit logically per phase" instruction). Finish a phase or a fix, run
+  lint/tsc/build, report what changed and why — then stop and leave the tree dirty for
+  them. Suggesting a commit message when handing work over is welcome; running the
+  command is not.
 - Prefer readable, well-named, commented-where-non-obvious code over cleverness.
 
 ## 15. Decision log
@@ -429,6 +437,535 @@ Two bugs found when the client ran the documented first-run step.
 | 7.9 | **`createBooking`/`cancelBooking` exist on the port and throw `SupplierNotImplementedError`.** | §9 wants the whole seam present so Phase 5 does not reshape it. A method that returned an empty result instead would be indistinguishable from a genuine failure to book. |
 
 **Bug found while cleaning up after the tests:** `set_supplier_credential` and `clear_supplier_credential` gated on `has_permission(auth.uid(), …)`, which is false under the service role because `auth.uid()` is NULL — so an ops script or migration could not rotate or remove a supplier key, and a cleanup call failed silently leaving the credential in place. Fixed in `20260907110300`, applying the standing rule from §15 (5.x): a system-context escape must accept `auth.uid() IS NULL`.
+
+### Phase 4 (agent portal & public site) — decided 2026-09-08
+
+Built at the client's request to run phases back-to-back rather than one at a
+time, reviewing each before moving on (§2.5 and §13 relaxed by that instruction).
+
+| # | Decision | Rationale |
+|---|---|---|
+| 9.1 | **Banners and static page content are database-backed from Phase 4**, with the CMS *editor* still arriving in Phase 6. Default copy for about/privacy/terms is seeded by migration. | §13 puts the marketing pages here and the editor there. Hardcoding the copy now would mean rewriting the public pages in Phase 6; seeding real content means the pages are genuinely complete today rather than shipping a placeholder privacy policy on a live site. |
+| 9.2 | **`content_pages.body_*` is plain text rendered as paragraphs, never HTML.** | Phase 6 hands this field to a non-developer. A CMS field stored as text and rendered unescaped is a stored-XSS hole waiting for its first editor (§12). |
+| 9.3 | **`cms.content.publish` was missing from the permission registry** and is seeded here. | It was already enforced by `/api/media/signature` for the `banners` folder, but §7 forbids granting a permission that does not exist — so no role could hold it and banner uploads were reachable only by `super_admin`, which short-circuits every check. Found while writing the banner table it gates. |
+| 9.4 | **A quotation item is a full SNAPSHOT of the offer, not a foreign key to a live rate.** The capture time is stored and shown. | A quote is a promise made at a moment. Re-reading live prices would silently show the customer a different number tomorrow. External supplier offers have no row to point at either, and half-snapshot/half-reference would leak which supplier answered — exactly what the port exists to hide (§9). The cost, a price that can go stale, is stated on screen rather than hidden (§2.3). |
+| 9.5 | **Quotations live in `modules/bookings`, not a module of their own.** | §6's module list has no `quotations`, and Phase 5 turns an accepted quotation into a booking — keeping both in one module makes that conversion local rather than a cross-module reach. Same reasoning as decision 3.8. |
+| 9.6 | **Quotations are agency-scoped, not per-user.** Any active user of the company can open, edit and delete them. | A quote belongs to the company, not to whoever happened to build it; a colleague has to be able to pick it up when someone is away. |
+| 9.7 | **The back-office cannot read quotations.** The super-admin clause was dropped rather than rewritten. | There is no permission key for reading another company's quotations, and inventing one inside the phase that builds the *agent* portal would put a back-office capability where it does not belong. If that need appears it arrives with its own key and its own screen. |
+| 9.8 | **The agent dashboard's "coming soon" card was rewritten, not extended.** Search, quotations and the company profile moved into real links. | The card still said those were unavailable after this phase shipped them. Telling a user a working feature does not exist is the same dishonesty as the reverse (§2.3) — found by walking the portal rather than by reading the code. |
+| 9.9 | **Booking history is an explicit "not built yet" page**, pointing at search and quotations. | An empty list would read as "you have never booked anything", which is false. There is no bookings table until Phase 5, and the page says so. |
+
+**Three bugs found by testing, none visible from reading the code:**
+
+- **RLS policies may only call the four functions the caller can execute.** Phase 1's
+  hardening revoked EXECUTE on every SECURITY DEFINER function from `authenticated`
+  except `authorize()`, `current_agency_id()`, `current_role_id()` and
+  `is_active_user()`. The Phase 4 policies were written against `has_permission()`
+  and `is_super_admin()`. The agent-denial tests **passed for the wrong reason** —
+  the agent was stopped by `permission denied for function has_permission`, not by
+  the policy deciding no — while a staff member who genuinely held
+  `cms.content.publish` would have hit the same error and been unable to manage
+  banners at all, a bug that would not have surfaced until Phase 6. Fixed in
+  `20260908100200`. **Standing rule: a policy may only call those four.**
+- **`buttonVariants` could not be called from a Server Component.** It was exported
+  from `button.tsx`, which is `"use client"`, and a value exported from a client
+  module cannot be *called* on the server — only rendered or passed as a prop. The
+  CVA definition now lives in `shared/ui/button-variants.ts` with no `"use client"`,
+  and `button.tsx` deliberately does **not** re-export it, so the trap cannot
+  recur.
+- **`<Button asChild>` around a `<Link>` fails on the homepage under `next dev`**,
+  reporting `Slot failed to slot onto its children` — a Radix error that names the
+  wrong culprit and sends you looking at button markup. The same page builds and
+  serves correctly with `next build` + `next start`, so it is a dev-mode Turbopack
+  issue rather than a defect in the markup. The marketing pages now style a `Link`
+  with `buttonVariants()` instead, which is the library's own alternative and
+  removes Slot from the path entirely. **`asChild` still works elsewhere** (the
+  auth screens use it), so it is not banned — but a Server Component rendering a
+  link as a button should reach for `buttonVariants()`.
+
+**A trap worth naming:** incremental bisecting against a running `next dev` gave
+contradictory answers for a long stretch — the same file returned 200 and then 500
+with no change, because Turbopack was still serving a previous compile. Once the
+question was put to `next build` instead, the answer was immediate and stable.
+**When a dev-server symptom will not sit still, reproduce it against a production
+build before drawing any conclusion from a bisect.**
+
+### Phase 5a (booking engine) — decided 2026-09-08
+
+| # | Decision | Rationale |
+|---|---|---|
+| 10.1 | **The credit rule is BLOCK, not warn.** A booking that would take the agency past its limit is refused inside `create_booking`, before any row exists. | §10 left this open ("block or warn — decide in Phase 2") and Phase 2 never did. A limit a user can click past is not a limit; this is a credit facility the operator controls, and the operator is not in the room when the agent books. |
+| 10.2 | **The balance is derived, never stored.** `agency_outstanding()` sums bookings that still stand — pending, confirmed and completed. Cancelling releases the obligation. | §10 and §15 (2.2). Pending counts because the rooms are held and the agent is on the hook for them; only a cancellation frees both the stock and the credit. |
+| 10.3 | **The price is re-derived server-side from `search_availability()`.** No amount travels from the browser. If the rate moved since the agent looked, the booking is REFUSED with that reason — never charged at either price. | §12 forbids trusting the client, but the stronger reason is that reusing the search function keeps one source of truth for pricing (§15, 7.3). A second copy in the booking path would eventually disagree with the one the agent was shown. |
+| 10.4 | **Inventory is held at CREATION, not at confirmation.** | Otherwise two agents could both take the last room while their bookings sat pending. `allocations` already carries `CHECK (sold <= allotment)`, so the database refuses an oversell itself rather than leaving it to be discovered. |
+| 10.5 | **There is no INSERT, UPDATE or DELETE policy on `bookings` or `booking_items`.** Every write goes through a SECURITY DEFINER RPC. | Pricing, the credit check, the inventory hold and the state machine have to happen in one transaction. Exposing the table would mean a client could create a booking without any of them. Verified: an agent cannot insert, re-price, delete, or flip `status` to confirmed. |
+| 10.6 | **The agent may cancel their own booking; only `bookings.confirm` may confirm one.** | Confirmation is the operator's word that the hotel accepted it — an agent confirming their own booking would mean nothing. Cancelling is an ordinary thing for an agent to do, and both paths run the same function so inventory is always restored. |
+| 10.7 | **A booking carries the agency's name and code as a snapshot**, alongside the foreign key. | Found by using the back-office as a "Reservations Officer" — a role with only the three booking permissions. The agency column read "—" for every row, because RLS on `agencies` correctly refused a role without `agencies.view`. Widening the role would have handed a reservations officer the whole agency directory, credit limits included, to render one column. The booking carries its own identity instead — which is also what a voucher needs after a company is renamed (same reasoning as 9.4). |
+| 10.8 | **`complete_booking` refuses a stay that has not finished.** | A booking marked completed before check-out makes every later report wrong, and reports are Phase 7's whole subject. |
+
+**Two defects found by the verification suite, both mine:**
+
+- **The new RPCs refused every system context.** `confirm_booking`, `cancel_booking`
+  and `complete_booking` gated on `has_permission(auth.uid(), …)`, which is false
+  under the service role, from a migration, or from the SQL editor. This is
+  **exactly the defect the standing rule in §15 (5.x) exists to prevent** — the rule
+  had been applied to guards and then not remembered when writing RPCs. Fixed in
+  `20260908120100`.
+- **Four checks passed for the wrong reason, and one proved nothing at all.**
+  "Confirming twice is refused" passed because the FIRST confirm was refused;
+  "a booking over the credit limit is blocked" passed on *"that offer is no longer
+  available"* — the test agency had simply run out of rooms, so the credit path was
+  never executed. The suite now asserts the **reason** in the message, not merely
+  that something failed, and the credit case books free dates so nothing else can
+  refuse it.
+
+**The lesson, stated plainly because it has now happened twice** (Phase 4's RLS
+policies, and here): *a negative test that does not assert why it failed is not a
+test.* Both times the code was genuinely broken and the suite was green.
+
+### Phase 5b (finance) — decided 2026-09-08
+
+| # | Decision | Rationale |
+|---|---|---|
+| 11.1 | **There is no balance column anywhere.** `agency_outstanding()` sums standing bookings, `agency_balance()` subtracts recorded payments, and `agency_statement()` unions the two sides with a running balance computed in Postgres. | §10 says the balance is derived from the ledger. A stored balance is a number nothing maintains and everything can disagree with; deriving it means the statement and the credit check cannot drift apart, because they are the same query. |
+| 11.2 | **Available credit is measured against the BALANCE, not gross bookings.** Paying settles the account and frees the headroom again. | Phase 5a measured against outstanding bookings alone, because there were no payments yet. Left that way, an agent who paid everything would still have been blocked. |
+| 11.3 | **Payments are immutable: no UPDATE, no DELETE, enforced by a trigger.** A correction is a second entry in the opposite direction (`kind = 'refund'`). | A ledger you can edit is not a ledger. It also means the fixtures for these tests cannot be fully torn down — the test agencies holding a payment survive, which is the design working rather than a leak. |
+| 11.4 | **Amounts are always positive; `kind` says which way the money went.** | A negative receipt reads as a typo at a glance. Two explicit kinds keep every row readable on its own, and the statement puts a refund on the debit side because it increases what the agent owes again. |
+| 11.5 | **Recording a payment is an RPC with no INSERT policy behind it.** | The reference is minted server-side and the audit row is written in the same transaction, so a payment cannot exist without either. Verified: an agent can neither insert one nor call the RPC. |
+| 11.6 | **A booking now stores its own breakdown** — subtotal, discount, tax rate, tax amount — with a CHECK enforcing `total = subtotal − discount + tax`. | An invoice that shows only a total is not an invoice, and a breakdown that does not add up is worse than none. The identity is a constraint because it is the one thing about the numbers that must never be wrong. |
+| 11.7 | **An unusable promo code REFUSES the booking rather than being ignored.** Every rejection names its reason: expired, exhausted, below the minimum, wrong agency. | Charging full price on a booking the agent believed was discounted is a silent difference that ends in a dispute. "Invalid code" for an expired one sends them to retype something that was never going to work. |
+| 11.8 | **A code scoped to another agency answers `not_found`, the same as one that does not exist.** | Telling an agent that a code exists but belongs to someone else leaks a competitor's negotiated deal. |
+| 11.9 | **`times_used` is maintained by a trigger on the redemption table**, never written by hand, and the admin form does not expose it. | A form that let an admin reset the counter would let a single-use code be used twice. |
+| 11.10 | **Tax is seeded as a single zero-rated default, active.** No VAT percentage is invented. | The client has not stated their VAT position (§2.6 by analogy: do not invent a value that changes what customers are charged). The model is complete and the admin sets the real rate; until then every booking is taxed at zero, visibly. |
+| 11.11 | **Currencies and exchange rates exist with no seeded rates.** | §13 asks for the model even with one currency exposed. Seeding a made-up rate would be inventing money. `currencies.decimals` is per-currency because rounding by a hardcoded 2 breaks on the first KWD or JPY contract. |
+
+**Three defects found by the verification suite, all before any UI existed:**
+
+- **`evaluate_promo_code` could not read a promo code at all.** Its RETURNS TABLE
+  declares an OUT column named `code`, and the lookup was written
+  `where upper(btrim(p_code)) = code` — ambiguous between the OUT variable and
+  `promo_codes.code`, so Postgres refused the query outright. Every promo path
+  failed with it.
+- **`agency_statement` had the identical bug** with `entry_date`. Two functions
+  written in the same sitting, the same mistake in both. **The habit that prevents
+  it: inside a function whose OUT names mirror its data, alias every source and
+  qualify every column.** Both are fixed that way rather than by renaming.
+- **`my_credit_summary` could not be replaced in place.** Postgres refuses to
+  change a function's return type through `create or replace`; it gained `paid`
+  and `balance`, so it needs an explicit `drop` first. The migration rolled back
+  cleanly, which is the only reason this was a five-minute fix.
+
+**Found by walking the UI:** a promo code scoped to an agency that no longer exists
+printed the raw UUID. It now says so in words — a fallback that shows an id is a
+fallback nobody can read.
+
+### Phase 5c (vouchers and invoices) — decided 2026-09-08
+
+§3 left the PDF library to be chosen in Phase 5 "evaluating bundle/server cost".
+The evaluation was run rather than reasoned about, and it changed the answer.
+
+**What was tested.** `@react-pdf/renderer` was installed in a scratch project and
+asked to render five lines — English, Arabic alone, Arabic with `direction: rtl`,
+and Arabic mixed with Latin — using a font with full Arabic coverage. The output
+was opened in a browser and looked at. Results:
+
+| Case | Result |
+|---|---|
+| Arabic letterforms | **Correct.** fontkit applies OpenType shaping, so letters join properly. |
+| Arabic alone | Correct. |
+| Arabic + Latin in one line | **Word order wrong**, and the line clipped off the left edge. |
+| `direction: rtl` | **Rendered nothing at all.** |
+| Mixed with punctuation | Comma misplaced, leading letters cut off. |
+
+So the shaping works and the **bidirectional algorithm does not**. For a product
+whose default locale is Arabic (§5), that is not a rough edge — it is unusable.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 12.1 | **No PDF library. Vouchers and invoices are print-optimised pages, and the reader's browser produces the PDF.** | The browser implements the Unicode bidirectional algorithm and Arabic shaping correctly, which the library does not, and it costs nothing per document. |
+| 12.2 | **A headless browser (Puppeteer) was rejected**, despite being the option that would render Arabic correctly server-side. | ~170–300MB of Chromium and roughly half a gigabyte of memory per render. §11 makes running well on modest tiers a first-class requirement, not a preference. |
+| 12.3 | **What this costs, stated plainly:** there is no server-generated PDF file, so a voucher cannot yet be *attached* to an email. | Emailing documents needs custom SMTP first, which is already a blocker (§15, 8.7). When that lands and attachments are genuinely required, a headless renderer becomes a deliberate infrastructure decision with a cost the client can weigh — rather than one taken by accident now. |
+| 12.4 | **Documents live at `/[locale]/documents/...`, outside both portal route groups.** | A voucher printed with a navigation bar down the side is not a voucher. `src/proxy.ts` still requires a session, and RLS still decides who may read the booking — the route is chrome-free, not access-free. |
+| 12.5 | **The voucher shows NO prices.** | It is handed to the hotel at check-in. What the agency paid — and the margin inside it — is not the hotel's business (§15, 6.1 applied to paper). |
+| 12.6 | **A voucher for a booking that is not yet confirmed says so on its face**, in the status banner. | Someone will print one the moment they book. A voucher that looks final but is not is worse than no voucher. |
+| 12.7 | **A `company_profile` singleton was added.** | An invoice needs a "from" as much as a "to", and the platform had no record of its own legal name, address or tax number. The row is a singleton enforced by a CHECK, because a settings table that can hold two rows eventually will, and then every document has to pick one. |
+| 12.8 | **The invoice states that settlement is on the credit account and there is no online payment.** | §10 is a settled product decision; saying it on the document stops a reader looking for a payment link that does not exist. |
+
+**Why the print CSS carries the reasoning in a comment** rather than only living
+here: the next person to touch those rules will be looking at the stylesheet, not
+at this file, and "why is this printed by the browser?" is exactly the question
+they will have.
+
+### Phase 6 (CMS) — decided 2026-09-08
+
+Phase 4 built the `banners` and `content_pages` tables and pointed the public
+site at them, deferring only the editor. This phase is that editor — so there
+is no migration here, and the whole phase is application code.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 13.1 | **One screen for banners and pages, not two.** | They answer the same question — "what does a visitor see" — and splitting them means two places to check before a launch. |
+| 13.2 | **Both languages are edited side by side**, never behind a language switch. | These are legal pages. The commonest failure is one locale being updated and the other quietly left stale; showing them together makes that visible rather than easy. |
+| 13.3 | **A banner's live state is computed in the UI only as a readout** (`live` / `hidden` / `scheduled` / `expired`), from the same three conditions the policy applies. | The label has to explain *why* a banner is not on the site. It is deliberately not a second rule: the database still decides. |
+| 13.4 | **Deleting a banner leaves its Cloudinary asset in place**, as deleting a hotel image does (§15, 6.8). | Destroying it needs a signed call, and an orphaned asset is cheaper than one deleted while something still references it. The Phase 10 sweep covers both. |
+| 13.5 | **The image is uploaded before the form is submitted**, and only its `public_id` travels in the form. | The server never accepts or stores bytes; it stores a reference to something Cloudinary already holds (§8). |
+
+**Two bugs found by walking the CMS as a real content editor — neither visible
+from the code, and neither caught by the RLS suite that passed first:**
+
+- **The public homepage rendered differently for the person editing it.**
+  `banners_manager_read` deliberately lets a `cms.content.publish` holder read
+  hidden and scheduled rows so they can work on them. `getActiveBanners()` relied
+  on RLS alone to filter — so an editor who hid a banner still saw it on the
+  homepage, and *only they* did. They would reasonably have concluded the save
+  failed. The public read now states the three public conditions itself: RLS is
+  still the security boundary, but the page asks for exactly what the public may
+  see rather than taking whatever the caller happens to be allowed.
+  **The general rule: when a policy grants some readers MORE, a page that must
+  show everyone the SAME thing has to filter for itself.**
+- **Every page edited through the CMS rendered as one unbroken wall of text.** A
+  browser textarea submits CRLF per the HTML spec, so saved copy arrives as
+  `
+
+` while the migration seeded `
+
+`. The paragraph split matched only
+  the latter. The seeded pages looked right and the first edited one did not —
+  the sort of thing that ships because nobody edits their own seed data.
+
+**A measurement mistake worth recording, because it nearly hid the second bug:**
+paragraphs were counted with `grep -c`, which counts matching *lines* — and Next
+emits the whole page on one line, so every page reported "1" whether it had one
+paragraph or ten. `grep -o | wc -l` gives the real count (and doubles it, because
+each class appears in the HTML and again in the RSC payload). **A measurement that
+returns the same number for every input is not measuring anything.**
+
+### Phase 7 (reports) — decided 2026-09-08
+
+| # | Decision | Rationale |
+|---|---|---|
+| 14.1 | **The cost of a booking lives in its own table, `booking_costs`, not a column on `bookings`.** | A profitability report needs margin = sell − net, and nothing in the schema knew the net. The obvious fix — a `net_cost` column on `bookings` — is wrong for a reason this project has already been bitten by: **RLS grants rows, not columns** (§15, Phase 1, the self-serve credit bug). `bookings_read` lets an agent read their own booking row, so a cost column on it would hand every agent the client's margin. A separate table makes the boundary structural: an agent cannot reach it by selecting a column, and a later phase adding a field to a booking query cannot leak it by accident. |
+| 14.2 | **`offer_net_total()` mirrors the net calculation inside `search_availability()`**, and is revoked from `authenticated` entirely. | Duplicated arithmetic is what §15 (7.3) warns against, so the mirror is as small as possible and the suite asserts the invariant `net + markup = sell` against a real booking. If the two ever drift, a test fails rather than the margin quietly going wrong. |
+| 14.3 | **Reports are SECURITY DEFINER functions, not views.** | A view cannot take a date range, and a `security_invoker` view leaks counts unless every underlying policy lines up (§15, 3.6). One explicit permission check at the top of a function is easier to audit. |
+| 14.4 | **`reports.export` is a separate permission from `reports.view`.** | Reading a margin on screen and walking out with the whole book of business in a spreadsheet are different acts. §7's registry already named both. |
+| 14.5 | **The CSV is written with a UTF-8 byte-order mark.** | Excel on Windows opens a UTF-8 CSV as ANSI without one, turning every Arabic name into mojibake — a report that is technically correct and practically useless. Three bytes fix it. |
+| 14.6 | **A cancelled booking is counted but earns nothing.** It appears in the cancellation rate and not in the money. | Counting its sell value as revenue would make a serial canceller the best-performing agent on the list. |
+| 14.7 | **A booking with no recorded cost shows a BLANK margin, never zero profit.** | Bookings made before cost capture existed genuinely have no cost. Rendering that as full profit would overstate every early booking (§2.3), and the table says so beneath itself. |
+
+**A revenue bug found by this phase, present since Phase 5a:**
+
+**A multi-room booking was charged for one room.** `search_availability()` returns
+`sell_total` **per room** — its `priced` CTE sums the nights and never multiplies
+by `p_rooms`, which is used only to check availability. `create_booking` stored
+that figure as the booking total:
+
+| rooms | net cost | charged |
+|---|---|---|
+| 1 | 3,000 | 3,450 ✓ |
+| 2 | 6,000 | 3,450 — half price |
+| 3 | 9,000 | 3,450 — a third |
+
+It survived the entire Phase 5 verification suite, every browser walkthrough and
+two rounds of review, because **every one of those tests booked one room**. What
+surfaced it was Phase 7: `offer_net_total()` does multiply by rooms, so the margin
+went sharply negative and the report made the discrepancy impossible to miss.
+
+Fixed in `20260908170000`, with the unit now stated in three places that a reader
+would actually look at: a `comment on function` for `search_availability`, the
+`SupplierOffer.sellTotal` doc on the port (external adapters must follow the same
+rule), and the search page, which now shows the price for the number of rooms
+being searched rather than for one.
+
+**Nothing was backfilled.** The only affected rows were test fixtures, and
+correcting a historical price would be inventing a charge nobody agreed to — a
+real multi-room booking made before this fix has to be re-quoted by a person.
+
+**The lesson: a parameter that every test passes the same value for is a parameter
+no test has exercised.** `p_rooms` was in every call and varied in none of them.
+The Phase 5 suite proved a great deal about the booking engine and nothing at all
+about the one input it held constant.
+
+### Phase 8a (transfers) — decided 2026-09-08
+
+The first product after hotels, and therefore the first test of whether the
+booking engine, the finance spine and the reports were built for *a* product or
+for *hotels*.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 15.1 | **A transfer booking is a row in `bookings`, not a row in a second booking table.** `bookings` gained `product_type`, and the hotel-shaped columns are constrained per product rather than duplicated. | One spine means money is counted in exactly one place, which is the property §10 actually cares about. A `transfer_bookings` table would have needed its own credit check, its own statement entry, its own report — four places to keep in agreement, and the first disagreement would be an agent booking past their limit. Verified: a transfer counts against credit, appears on the statement and reports margin, through the *same* functions, with no changes to any of them. |
+| 15.2 | **The date constraint is product-aware rather than relaxed.** A hotel booking must still have `check_out > check_in` and `nights = check_out − check_in`; a transfer must have `check_out = check_in` and `nights = 0`. | Generalising a table usually means loosening its constraints, and the loosening is what later lets a nonsense row in. A `CASE` on `product_type` keeps every hotel rule exactly as strict as it was. All 143 pre-existing checks still passed after the alteration, which is what made the change safe to keep. |
+| 15.3 | **Transfers have no allotment.** Availability means "a rate covers this date and is not closed"; there is no oversell check and no `sold` counter. | A hotel releases a fixed number of rooms; a transfer operator sends another car. Inventing an allocation table would have meant inventing a capacity nobody contracted. **This is stated on the rates screen**, not just here, because it is the first question an admin who knows the hotel module will ask. If a fixed fleet is ever contracted, that becomes a capacity table and this decision is revisited. |
+| 15.4 | **`transfer_rates` gets no agent-facing SELECT policy at all**, exactly as hotel `rates` gets none (§15, 6.1). Vehicles and routes are readable, because an agent must know what a "Minivan" is to choose one. | The gap between the contracted price and the agent's quote is the client's margin, and RLS is what the PostgREST endpoint enforces against a real agent token. Verified twice: through a signed-in agent, and through a staff member who holds `bookings.view_all` but not `transfers.manage` — both see zero rows. |
+| 15.5 | **The search prices ONE vehicle, and both the card and the invoice column say so.** | This is the Phase 7 revenue bug (a multi-room booking charged for one room) refusing to be repeated in a new product. `create_transfer_booking` multiplies by `p_vehicles`, and the suite varies the count 1/2/4 rather than passing the same value every time — the exact omission that hid the hotel bug for three phases. |
+| 15.6 | **The vehicle count is chosen in the booking dialog, not on the search form.** | It depends on which vehicle was picked: eight passengers is two sedans or one minibus. Asking before the choice is made would be asking a question the agent cannot yet answer. |
+| 15.7 | **A flight number is asked for only on an airport leg.** | A field nobody on a city-to-city transfer can fill in is a field that teaches people to skip fields. |
+| 15.8 | **`toHalfOpenRange`/`parseDateRange` moved to `shared/lib/date-range.ts`.** | Hotel rates, hotel offers and now transfer rates all use the same `[from, to+1)` conversion (§15, 6.3). A third private copy of an off-by-one is three chances to get it wrong in only one of them. |
+
+**A limitation worth naming rather than discovering later:** `search_transfers`
+only offers vehicles that seat the WHOLE party (`max_passengers >= p_passengers`),
+so a party of six is never offered two sedans — only a minivan or larger. That is
+the schema's own rule from the migration, and it is defensible (one party, one
+vehicle, one pickup), but it does mean the multi-vehicle path is reached by an
+agent raising the count deliberately, not by the search suggesting it. Splitting a
+party across smaller cars is a Phase 8b question, alongside driver assignment.
+
+**Bugs found by walking the screens, none of them visible from the code:**
+
+- **A fully-qualified error key resolved against a namespaced translator prints
+  the key path.** The booking dialog showed `Transfers.Transfers.Errors.PastDate`
+  where a message should have been: the action returns
+  `"transfers.errors.pastDate"` and the component asked
+  `useTranslations("transfers")` for it, which looks under
+  `transfers.transfers.…`. **The hotel booking dialog had the identical bug and
+  had had it since Phase 5a** — every failed hotel booking showed a raw key —
+  along with the record-payment dialog and the company-profile form. The
+  `useShow()` helpers most screens use were always correct because they call the
+  ROOT `useTranslations()`; the four inline dialogs that did not use that helper
+  were all wrong. Fixed in all four, with the reason in a comment at each.
+  **The general shape: a helper that encodes a rule protects only the callers
+  that use it.**
+- **`common.edit` did not exist**, so every "edit" button on the transfers screen
+  rendered the literal text `common.edit`. TypeScript cannot catch this and
+  next-intl prints the key rather than failing, so it survives a clean build.
+  A checker now resolves every literal `t("…")` in the phase's files against both
+  catalogues; it also found the two below.
+- **Two form fields carried the wrong label** — the rate form's *currency* input
+  and the route form's *direction* select were both labelled "Route", a
+  copy-paste that reads as a bug in the data rather than in the label.
+- **`km` was a hardcoded string** in an Arabic UI, which §5 forbids.
+- **The pickup notes printed twice.** `create_transfer_booking` stores them in
+  `special_requests` so one column serves both products, and the detail page and
+  the voucher each printed that column *and* the transfer card. The same sentence
+  under two different labels reads as two different instructions to whoever is
+  arranging the car.
+- **Three hotel words on a transfer document**: the voucher was titled "Hotel
+  voucher" and footed "present this at check-in … not the hotel's concern", and
+  the invoice's unit column said "Per night" above a per-vehicle price. An
+  invoice column that names the wrong unit is an invoice that cannot be checked.
+
+**What the UI suite proved that the database suite could not:** `bookings` now
+embeds two item tables, and PostgREST has to resolve both in one select. A hotel
+booking returning a transfer row (or the reverse) would have been invisible in
+SQL and wrong on every screen. Asserted explicitly in both directions.
+
+### Phase 8b (driver operations) — decided 2026-09-08
+
+The first users who are neither back-office staff nor agents. Both decisions
+below were put to the client rather than guessed, because §13 asks for "a
+responsive web view" without saying who signs into it.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 16.1 | **A driver is a real platform user, under a THIRD role scope: `driver`.** Chosen by the client over "no accounts, back-office only" and over per-job signed links. | A scope answers "which side of the product is this person on", and a driver is on neither existing side: no agency, no prices, one screen. Reusing `agent` would have put them inside an agency's RLS scope, which is precisely wrong. Signed links were rejected because §12 makes authentication Supabase Auth's job, and a link that can be forwarded or must be revoked is a second auth surface we would own. |
+| 16.2 | **ONE ASSIGNMENT ROW PER VEHICLE.** Chosen by the client. Three cars is three jobs, three drivers and three independent states. | It is what happens on the day. A single status per booking cannot say "one car has arrived and one is stuck in traffic", and one driver cannot drive three cars. It also makes the vehicle count checkable: the board generates a row per required vehicle and the empty ones are the work. |
+| 16.3 | **The enum value is added in its own migration.** `20260908190000` does nothing but `alter type role_scope add value 'driver'`. | Postgres will not let a new enum value be *used* in the transaction that added it, and the Supabase CLI runs one migration per transaction. The split is the only order that works, not tidiness. |
+| 16.4 | **`drivers` is a table beside `profiles`, not columns on it.** The phone is duplicated there deliberately. | Licence details and availability are operational data that agents and staff have no business sharing a table with. The phone is duplicated because `profiles.phone` is optional and owned by the user, while dispatch must always have a number to ring — the same reasoning that puts a snapshot on a booking (§15, 9.4). |
+| 16.5 | **A driver is never deleted** (`on delete restrict` from assignments), only deactivated — and `set_driver_active()` moves the fleet flag and the account status **together**. | §15 (2.8) for the deletion; the RPC for the pairing, mirroring approve/suspend on the agency side (§15, 3.3). Letting the two drift produces either a driver assigned work they cannot see, or one who signs in to a list that will always be empty. |
+| 16.6 | **The clash rule is an EXACT match only**: same driver, same day, same minute, enforced by a partial unique index. | A dispatcher also cares about travel time between two jobs an hour apart, but any window this migration picked would be a business rule nobody stated (§2.6 by analogy). What is certain is that the same driver at the same minute is a double-booking. **Travel-time conflicts are therefore not modelled** — stated here so the omission is not read as an oversight. |
+| 16.7 | **Pulling a driver CANCELS the row rather than deleting it**, and the uniqueness indexes are partial on `status <> 'cancelled'`. | "This driver was assigned and then taken off" is exactly the fact you want when a guest complains about a late car. Plain table constraints would have let that dead row go on blocking the seat it no longer occupies. |
+| 16.8 | **The state machine is forward-only, and the driver's screen offers only the legal next steps.** Only dispatch may cancel. | The timestamps behind those states are what a later dispute is settled with. A status dropdown would let a driver mark a job completed before arriving — the database refuses it, but the screen should not offer it. A driver who cannot do a job rings the office; deciding what replaces them is not their call. |
+| 16.9 | **`my_driver_jobs()` returns NO price column of any kind.** Not sell, not net, not currency. | §15 (12.5) applied to a screen. Because the function returns columns rather than the table, this is structural: no later change to the driver page can leak a price, and the suite asserts the absence of the column rather than the absence of a rendered number. |
+| 16.10 | **An agent may see the driver's name, phone and status — through a function returning three fields**, never through a policy on `drivers`. | The agent's customer asks who is coming, so the agent needs an answer. But RLS grants rows, not columns (§15, Phase 1), and a `drivers` row carries a licence number. Same structural reasoning as `booking_costs` (§15, 14.1), pointing the other way. |
+| 16.11 | **Cancelling a booking cancels its live jobs, by trigger** — but leaves a completed one alone. | Otherwise a driver keeps an arrival on their list for a booking that no longer exists, and drives to it. A journey that already happened is history, and cancelling the booking afterwards must not rewrite it. |
+
+**The dangerous part, and why it needed its own migration.** The profile
+privilege guard was written as `if scope = 'admin' … else <agent rules>`. A
+third scope falls into the ELSE. For role changes that was fail-closed — the
+agent branch demands `agency_users.manage` and a matching `agency_id`, and a
+driver has neither — but the **status** branch was not: its `elsif` chain lets
+anyone holding `agencies.approve` or `agencies.suspend` change the status of a
+non-admin account, which would have included every driver. Both branches now
+name `driver` explicitly and gate it on `drivers.manage`.
+
+**Two vacuous passes in the same run, and the real bug hiding behind them.**
+The first version of the suite asserted that an approver got an *error* when
+suspending a driver. It did not: **an UPDATE that RLS filters to zero rows
+returns no error from PostgREST.** So one check reported protection where the
+guard had never run, and the neighbouring check — "a `drivers.manage` holder
+can" — reported success for a call that had also done nothing. Rewriting both
+to ask what the ROW said afterwards exposed the actual gap:
+
+- **`drivers.manage` could not manage a driver.** `profiles_select` grants
+  visibility to `agencies.view` or `staff.view` and `profiles_update` to
+  `staff.update`, so the new permission could write the `drivers` table but
+  could not read the person's name or change their account status — a
+  permission that did not do what its name said (§2.3). Fixed in
+  `20260908190300`: the policy now admits driver-scoped rows for fleet roles,
+  and status changes go through `set_driver_active()`.
+- **`set_driver_active()` then failed on every call.** `status = case when …
+  then 'active' else 'suspended' end` gives Postgres two untyped literals and
+  nothing to infer from, so the CASE typed as `text` and the assignment was
+  refused. Its companion check ("and reactivates both") had been passing the
+  whole time, because the driver it expected to find active had never been
+  deactivated. Fixed with explicit casts in `20260908190400`.
+
+**The general shape, since this is the third phase it has appeared in:** *a
+check that cannot distinguish "it was refused" from "it did nothing" is not a
+check.* Phase 4 had it with RLS policies, Phase 5a with booking refusals, and
+here with silent no-op UPDATEs.
+
+**A redirect loop this phase would have shipped, found by reading rather than
+running:** `(admin)/layout` sent a non-admin to `/agent` and `(agent)/layout`
+sent a non-agent to `/admin`. With two scopes each was a correct guess about
+the other's audience; with three, a driver landing on either would have
+bounced between them forever. Both now redirect to `landingPathFor(user)`,
+which is the single place that knows where a person belongs.
+
+**Found by walking the screens:**
+
+- **Arabic plural agreement was wrong at 1 and 2** — the board read "1 مركبات"
+  and the transfer search "2 حقائب". Arabic has six plural forms, and ICU's `#`
+  would render Arabic-Indic digits, which §15 (0.8) deliberately does not use.
+  Labelling the number instead ("المركبات: 2", "Seats: 4") is correct at every
+  count in both languages and keeps Latin digits. The Phase 8a strings had the
+  same flaw and were fixed with it.
+- **The "who is driving" card counted the wrong total.** It labelled a car
+  "1 of N" using the number of drivers ASSIGNED, so the first of three cars
+  read "car 1 of 1" until the rest were filled. It now takes the booking's own
+  vehicle count.
+
+### Phase 8c (packages and tours) — decided 2026-09-09
+
+The third product, and the first one whose shape §13 did not imply. Both
+decisions below were put to the client rather than guessed.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 17.1 | **A package is a FIXED TOUR with dated departures**, not a dynamic bundle assembled from live hotel and transfer inventory. Chosen by the client over dynamic packaging and over building both. | It is what an operator in this market actually sells, and it reuses the existing spine without inventing cross-product inventory holds. The rejected option was not rejected as wrong — dynamic packaging is a real product — but it needs availability across several nights and cities and an atomic hold spanning three inventory models, which is a phase of its own rather than a corner of this one. |
+| 17.2 | **Pricing is PER PERSON BY OCCUPANCY** — single, per person sharing, triple, child. Chosen by the client over a flat per-booking price. | A flat price cannot express a single supplement, which is the one number every tour quote has. The supplement is not stored: it is the gap between the single and double rates, so it can never disagree with them. |
+| 17.3 | **A booking carries one item row per occupancy sold.** "2 sharing + 1 single" is two lines. | It is how the invoice reads and how the money adds up. A single row with four counts would have to re-derive each line's price to print the invoice, which is a second pricing rule (§15, 7.3). |
+| 17.4 | **`return_date` is computed by a trigger from the package's own length**, never typed. | A departure that disagreed with its tour would be rejected by the booking's `nights = check_out − check_in` constraint — so the failure would surface at the moment an agent tried to book, blaming the booking rather than the bad data. Verified: entering a wrong return date is silently corrected, and moving a departure recomputes it. |
+| 17.5 | **Departures DO have capacity and DO refuse an oversell**, unlike transfers, which deliberately have none (§15, 15.3). | A coach and a guide hold a fixed number of people; a transfer operator sends another car. The difference is real, so the two products model it differently rather than sharing a rule that would be wrong for one of them. Said on the departures screen, not only here. |
+| 17.6 | **Seats are held at CREATION and released by a TRIGGER on cancellation.** | Holding at creation is §15 (10.4) — otherwise two agents both take the last seats while their bookings sit pending. The release is a trigger rather than a branch inside `cancel_booking` because it is strictly additive to a function that already works and fires whatever path cancels. **The hotel release stays inline where Phase 5a put it**: moving it would risk a double release, and that refactor deserves its own change rather than riding along with a new product. |
+| 17.7 | **An occupancy with no rate REFUSES the booking, by name**, rather than being charged at zero. | Charging nothing for a traveller the agent entered is worse than refusing: the money is wrong and nobody finds out until reconciliation. The dialog also disables the counter, so the screen does not offer what the database will refuse. |
+| 17.8 | **The rate period is matched against the DEPARTURE date, not every night of the tour.** | A tour is priced by when it leaves; a season boundary in the middle of a fifteen-night itinerary is not how a contract is written. The same half-open `daterange` + EXCLUDE constraint as hotel and transfer rates (§15, 6.2/6.3). |
+| 17.9 | **Search returns one row per departure with the four occupancy prices pivoted into columns.** | An agent choosing a date is comparing "what does this leave at, and what does a single cost". Four rows per departure would make them reassemble it. |
+
+**A build failure worth recording, because it is the third instance of one
+shape.** `OCCUPANCIES` was exported from the repository, which carries
+`import "server-only"` — so the moment a `"use client"` booking dialog imported
+it the client build failed. It now lives in `modules/packages/domain/`, which
+§6 reserves for things that depend on nothing and both sides may import. This
+is the same trap as `buttonVariants` in §15 (Phase 4): **a value both sides
+need cannot live in a module only one side can import**, and the compiler only
+says so at build time, never at `tsc`.
+
+**Found by walking the screens — all four are the same category, and it is now
+a predictable one:** when a product joins a shared surface, the shared copy is
+still written for the product that came first.
+
+- The booking detail labelled a tour's date range **"Stay"**, a hotel word for
+  something that is a departure and a return.
+- The voucher's section heading read **"Packages"** (a menu label) and the tour
+  name sat under **"Name (EN)"** (a form-field label). Neither belongs on a
+  document handed to an operator.
+- The cancellation dialog promised that **"the rooms go back into inventory"**
+  — true of a hotel, false of a transfer, and only half-right for a tour. It
+  now says what is actually common to all three: whatever the booking was
+  holding is released.
+
+**A pass that proved nothing, caught by re-reading rather than by failing.**
+"A departure that has already left is refused" passed on the wrong branch: the
+fixture had no rate covering a past date, so `search_packages` returned nothing
+and the refusal was *"no longer available"* rather than the past-date rule
+under test. Giving the fixture a rate that covers the past made the intended
+branch run — and it does. **The suite now also asserts the fixture is
+findable before asserting that booking it is refused**, because a refusal
+against something that was never there is not a refusal.
+
+### Phase 8d (CRM) — decided 2026-09-09
+
+The last part of Phase 8, and the only module whose subject is the CLIENT'S own
+sales work rather than something an agency buys.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 19.1 | **The CRM is the client's tool and its subject is travel agencies** — prospects being courted, and existing agencies being followed up. Chosen by the client over an agent-facing address book for travellers. | In a B2B platform the customers are the agencies, so "manage the customer relationship" means managing them. The rejected option is a real product too, but it would have given the platform's owner no sales tool at all, which is what a CRM is for. |
+| 19.2 | **NO agent-facing policy exists on any CRM table**, and that is the point rather than an omission. | This inverts every other table in the schema. `crm_activities.agency_id` points at a company that holds a real token against PostgREST, and the rows beside it are the sales team's private view — "they are shopping around", "hold their credit limit where it is". An "own agency" read here would hand each company its own file. Verified with the agency's own token: zero activities, zero tasks, zero leads, and zero when filtering by their own id explicitly. |
+| 19.3 | **The CRM never creates an agency.** Winning a lead LINKS it to one that registered and was approved through the normal route. | Agencies exist only through self-registration plus approval (§15, 2.3 and 3.3). A second path into existence would be a way around the approval gate §7 puts there. The convert dialog says so on screen, because "mark as won" reads like it might create something. |
+| 19.4 | **Activities and tasks are ONE table each, covering a lead or an agency**, with `num_nonnulls(lead_id, agency_id) = 1`. | It is the same thing — a record of contact — before and after a company signs. Two tables would mean two shapes and two queries, and the question "was this said before or after we signed them" needs both timelines to look identical. One component renders both for the same reason. |
+| 19.5 | **A stage that means something carries its evidence**: `won` requires the agency snapshot, `lost` requires a reason, both as CHECK constraints. | A pipeline that cannot say why it lost is a list. Moving BACKWARDS is deliberately allowed — a lost prospect who calls back is ordinary — so the constraints are about evidence, not about direction. |
+| 19.6 | **`won` is unreachable from the stage dropdown.** The only way in is `convert_lead`. | A dropdown that set the stage without the link would produce exactly the row the CHECK refuses, so the screen would be offering a failure. |
+| 19.7 | **A task's `status` and `completed_at` are bound by a CHECK**, and `set_task_status()` is the only thing that moves both. | "Done" with no timestamp is a label, not a record. Binding them means no screen has to remember the pairing — verified: flipping the status alone is refused by the table. |
+| 19.8 | **Everyone with `crm.view` sees the whole pipeline**; there is no owner-only scoping. | This is a small operator's sales team, where the answer to "who is talking to them" has to be visible to everyone. If per-owner privacy is ever wanted it arrives as its own decision rather than being assumed now. |
+
+**A bug found by a teardown that would not tear down — and it is the same
+shape as one already in this log.** `crm_leads.agency_id` is `on delete set
+null`, and `crm_leads_won_has_agency` demanded a non-null agency on a won lead.
+So deleting an agency made Postgres issue its own `update crm_leads set
+agency_id = null`, the CHECK refused it, the agency delete failed, the
+profile-delete trigger failed with it — and **the last user of any agency that
+had ever been won as a lead could not be deleted at all.** That is precisely the
+Phase 2 `agencies.approved_by` bug (§15), rediscovered in a new table.
+
+The fix is the pattern this project already uses for exactly this problem
+(§15, 9.4 and 10.7): the lead now carries `won_agency_name`/`won_agency_code`
+as a SNAPSHOT taken at conversion. The foreign key stays a live link and may go
+null; the evidence lives in columns nothing can revoke. The lead survives its
+agency, still won, with its link cleared — which is right, because the lead is
+the sales team's record of their own work.
+
+**Two bugs found by walking the screens, both of the same family: a screen
+denying something that exists.**
+
+- **The contact timeline was always empty, whatever was in the table.**
+  `crm_*.created_by` referenced `auth.users`, so PostgREST could not resolve
+  `author:profiles!crm_activities_created_by_fkey` — the whole select errored,
+  and the repository's `data ?? []` rendered that error as "no contact logged
+  yet". The toast said saved, the database had the row, and the screen said
+  nothing was there. Fixed by pointing the column at `profiles` (whose `id`
+  IS `auth.users.id`), matching how `owner_id` and `assigned_to` were already
+  written — those two worked, which is what made the difference visible.
+  **Every CRM read now logs its error instead of swallowing it**: §15 (7.6)
+  said a failed search must never render as "nothing available", and that rule
+  applies to reads, not only to searches.
+- **`revalidatePath` was being given concrete URLs, not route patterns.**
+  `revalidatePath("/[locale]/admin/crm/" + id)` names a path Next has never
+  heard of, so the call quietly does nothing. Found here, but **the same
+  one-line mistake was in five modules** — bookings, quotations, finance,
+  packages and CRM. Only the hotels module had it right. All five now pass the
+  pattern.
+
+**The third instance of one trap, and the rule that should stop a fourth.**
+`LEAD_STAGES` and friends were exported from the repository, which carries
+`import "server-only"`, so the client build failed the moment the board
+imported them. This is `buttonVariants` (§15, Phase 4) and `OCCUPANCIES`
+(§15, Phase 8c) again — and it happened two turns after recording the second
+one. **A value both sides need goes in `domain/` FIRST, and the repository
+imports it from there.** `tsc` never catches it; only the build does.
+
+### Country picker and hotel location link — 2026-09-09
+
+Two client requests, both replacing a field that asked a person to transcribe
+something they already had in front of them.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 18.1 | **Country is a picker over `i18n-iso-countries`**, not a typed two-letter code. Every one of the six country fields uses the same control. | A typed code is a field users get wrong regularly — "UK" for GB, "UAE" for AE — and a hand-written list goes stale the next time a country is renamed. The package was chosen over `world-countries` and `countries-list` for one reason: it ships the official ISO names in **Arabic**, which §5 requires and the other two do not. |
+| 18.2 | **A search box filtering a NATIVE `<select>`**, not a custom popover listbox. | The platform already implements keyboard navigation, type-ahead, screen-reader announcement and — the one that matters most for a back-office used on phones — the native wheel picker. This project has no popover primitive (§15, 0.3 keeps the dependency list short), so a custom listbox would have meant owning focus management and ARIA for a field that did not need it. The search input carries no `name`, so it filters and nothing else; with JavaScript off the select still works. |
+| 18.3 | **The filter matches the code and the name in BOTH locales.** | Found in the browser, not by reading: on the Arabic UI, typing "saudi" on a Latin keyboard matched nothing at all. Half this product's admins type Latin and half type Arabic, often on the same machine. A country is one thing with two names, so both find it. |
+| 18.4 | **The selected country is pinned to the top of the filtered list and never filtered away.** | A `<select>` whose selected option disappears silently changes its own value — the form would submit a country nobody picked. Verified: filtering to a query matching nothing leaves the value untouched and shows a "no results" line. |
+| 18.5 | **`isCountryCode` now guards all five country schemas server-side.** | The picker only offers real codes, but a form field is a suggestion and a POST body is not (§12). |
+| 18.6 | **The hotel's location is ENTERED as a map link; `latitude`/`longitude` are DERIVED from it and still stored.** | The client asked for a link instead of coordinates, and typing two seven-decimal numbers is a transcription task with no feedback — a dropped digit in the longitude puts the hotel in the wrong governorate and nothing on screen says so. But a link is a string and coordinates are data: a map pin, a distance sort or a "hotels near the airport" search all need numbers and none can get them back out of a shortened URL later. So the *input* changed and nothing was thrown away; no existing hotel lost its position. |
+| 18.7 | **The parser prefers the PLACE PIN (`!3d…!4d…`) over the viewport centre (`@lat,lng`).** | They are different points in the same URL. `@` is wherever the map happened to be centred when the link was copied; `!3d!4d` is the pin itself. Verified end to end: a link carrying both stored the pin. |
+| 18.8 | **A shortened link is reported as carrying no coordinates rather than resolved.** | `maps.app.goo.gl/…` is an opaque redirect — following it would mean an outbound HTTP request from the server, on every form submission, to a URL a user supplied. That is a request-forgery surface bought for a convenience. The field says so and asks for the full link instead, which is honest rather than silently saving a hotel with no position (§2.3). |
+| 18.9 | **Only `http(s)` links are stored.** | An admin-entered `javascript:` URL that another admin later clicks is stored XSS (§12). Enforced in the Zod schema, in a CHECK on the column, and in the field's own readout. |
+
+**The readout under the field is the point of the change**, not decoration: a
+pasted link either resolves to coordinates — shown, with a link to open them in
+Maps so the admin can check the pin is the right building — or it does not, and
+it says which of the two reasons applies. The old numeric fields gave no
+feedback at all, so a wrong digit looked exactly like a right one.
+
+**Bundle cost, stated because §11 asks for it:** the country data adds ~16KB
+gzipped to one shared chunk, used by all six forms. Measured on the built
+output rather than estimated.
+
+**Two stale message keys were deleted** rather than left behind:
+`auth.fields.countryCodeHint` ("a two-letter code") and `hotels.fields.latitude`
+/ `.longitude`. Copy that nothing renders is copy that misleads the next person
+who greps for it.
 
 ### Password reset — fixed 2026-09-08
 

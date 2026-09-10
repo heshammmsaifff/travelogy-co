@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
@@ -6,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Toaster } from "sileo";
 import { LOCALE_META } from "@/shared/i18n/config";
 import { routing } from "@/shared/i18n/routing";
+import { NavigationSplash } from "@/shared/ui/navigation-splash";
 import "@/app/globals.css";
 
 /**
@@ -68,6 +70,9 @@ export default async function LocaleLayout({
     <html lang={locale} dir={dir} className={plexArabic.variable} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <NextIntlClientProvider>
+          <Suspense fallback={null}>
+            <NavigationSplash />
+          </Suspense>
           {children}
           {/* Mounted once for the whole app (CLAUDE.md §3). Position is given in
               logical terms so toasts appear on the reading-start edge in both

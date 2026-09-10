@@ -16,6 +16,7 @@ const label = (msg: string) => z.string().trim().min(2, msg).max(120);
 
 export const createRoleSchema = z.object({
   key: roleKey,
+  scope: z.enum(["admin", "agent"]).default("admin"),
   nameAr: label("access.validation.nameArRequired"),
   nameEn: label("access.validation.nameEnRequired"),
   descriptionAr: z.string().trim().max(500).optional().or(z.literal("")),

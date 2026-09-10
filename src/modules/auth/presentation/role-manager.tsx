@@ -9,6 +9,8 @@ import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Modal } from "@/shared/ui/modal";
+import { NativeSelect } from "@/shared/ui/select";
+import { Checkbox } from "@/shared/ui/checkbox";
 import type { PermissionRow, RoleSummary } from "@/modules/auth/infrastructure/access.repository";
 import {
   createRoleAction,
@@ -73,14 +75,26 @@ export function CreateRoleButton() {
           }
           className="space-y-4"
         >
-          <Input
-            name="key"
-            required
-            dir="ltr"
-            label={t("fields.key")}
-            hint={t("fields.keyHint")}
-            placeholder="reservations_officer"
-          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              name="key"
+              required
+              dir="ltr"
+              label={t("fields.key")}
+              hint={t("fields.keyHint")}
+              placeholder="reservations_officer"
+            />
+            <NativeSelect
+              id="role-scope"
+              name="scope"
+              required
+              defaultValue="admin"
+              label={t("fields.scope")}
+            >
+              <option value="admin">{t("scope.admin")}</option>
+              <option value="agent">{t("scope.agent")}</option>
+            </NativeSelect>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Input name="nameAr" required label={t("fields.nameAr")} />
             <Input name="nameEn" required dir="ltr" label={t("fields.nameEn")} />

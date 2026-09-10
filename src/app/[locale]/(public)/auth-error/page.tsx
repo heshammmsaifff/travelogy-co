@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@/shared/i18n/config";
 import { Link } from "@/shared/i18n/navigation";
 import { AuthShell } from "@/modules/auth/presentation/auth-shell";
-import { Button } from "@/shared/ui/button";
+import { buttonVariants } from "@/shared/ui/button-variants";
 
 /**
  * Landing spot for an email link that could not be used.
@@ -34,12 +34,15 @@ export default async function AuthErrorPage({
       subtitle={t(REASONS.includes(reason as Reason) ? (reason as Reason) : "invalid")}
     >
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Button asChild className="flex-1">
-          <Link href="/forgot-password">{t("requestNew")}</Link>
-        </Button>
-        <Button asChild variant="secondary" className="flex-1">
-          <Link href="/login">{t("backToLogin")}</Link>
-        </Button>
+        <Link href="/forgot-password" className={buttonVariants({ className: "flex-1" })}>
+          {t("requestNew")}
+        </Link>
+        <Link
+          href="/login"
+          className={buttonVariants({ variant: "secondary", className: "flex-1" })}
+        >
+          {t("backToLogin")}
+        </Link>
       </div>
     </AuthShell>
   );

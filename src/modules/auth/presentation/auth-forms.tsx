@@ -5,7 +5,9 @@ import { useActionState } from "react";
 import { LuCircleAlert, LuCircleCheck, LuLock, LuMail, LuUser } from "react-icons/lu";
 import type { Locale } from "@/shared/i18n/config";
 import { Button } from "@/shared/ui/button";
+import { CountrySelect } from "@/shared/ui/country-select";
 import { Input } from "@/shared/ui/input";
+import { PhoneInput } from "@/shared/ui/phone-input";
 import {
   changePasswordAction,
   requestPasswordResetAction,
@@ -118,14 +120,10 @@ export function RegisterForm({ locale }: { locale: Locale }) {
         </legend>
         <Input name="agencyName" required label={t("fields.agencyName")} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input
+          <CountrySelect
             name="countryCode"
             required
-            maxLength={2}
-            defaultValue="EG"
-            dir="ltr"
             label={t("fields.countryCode")}
-            hint={t("fields.countryCodeHint")}
           />
           <Input name="city" label={t("fields.city")} />
         </div>
@@ -150,7 +148,7 @@ export function RegisterForm({ locale }: { locale: Locale }) {
             label={t("fields.email")}
             leadingIcon={<LuMail />}
           />
-          <Input name="phone" type="tel" required dir="ltr" label={t("fields.phone")} />
+          <PhoneInput name="phone" required label={t("fields.phone")} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input

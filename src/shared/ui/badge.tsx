@@ -16,11 +16,14 @@ const badgeVariants = cva(
   {
     variants: {
       tone: {
-        neutral: "bg-neutral-100 text-neutral-700",
-        brand: "bg-brand-50 text-brand-700",
-        success: "bg-success-50 text-success-700",
-        warning: "bg-warning-50 text-warning-700",
-        danger: "bg-danger-50 text-danger-700",
+        neutral: "bg-neutral-200/80 text-neutral-800 border border-neutral-300",
+        brand: "bg-brand-50 text-brand-700 border border-brand-200",
+        navy: "bg-brand-600 text-ink-inverse shadow-2xs",
+        teal: "bg-brand-500 text-ink-inverse shadow-2xs",
+        gold: "bg-gold-100 text-gold-900 border border-gold-300 font-semibold",
+        success: "bg-success-50 text-success-700 border border-success-100",
+        warning: "bg-warning-50 text-warning-700 border border-warning-100",
+        danger: "bg-danger-50 text-danger-700 border border-danger-100",
       },
     },
     defaultVariants: { tone: "neutral" },
@@ -30,6 +33,9 @@ const badgeVariants = cva(
 const DOT_TONES = {
   neutral: "bg-neutral-500",
   brand: "bg-brand-600",
+  navy: "bg-gold-500",
+  teal: "bg-white",
+  gold: "bg-gold-600",
   success: "bg-success-600",
   warning: "bg-warning-600",
   danger: "bg-danger-600",

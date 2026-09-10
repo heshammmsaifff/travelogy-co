@@ -7,7 +7,10 @@ import { LuBan, LuGlobe, LuPlus, LuSend } from "react-icons/lu";
 import type { Locale } from "@/shared/i18n/config";
 import { confirmAction } from "@/shared/lib/confirm";
 import { Button } from "@/shared/ui/button";
+import { CountrySelect } from "@/shared/ui/country-select";
 import { Input } from "@/shared/ui/input";
+import { PhoneInput } from "@/shared/ui/phone-input";
+import { LocationField } from "./location-field";
 import { Modal } from "@/shared/ui/modal";
 import { PROPERTY_TYPES } from "@/modules/hotels/application/schemas";
 import {
@@ -61,11 +64,9 @@ function DetailFields({ hotel }: { hotel?: NonNullable<Hotel> }) {
           label={t("starRating")}
           hint={t("starRatingHint")}
         />
-        <Input
+        <CountrySelect
           name="countryCode"
           required
-          maxLength={2}
-          dir="ltr"
           defaultValue={hotel?.countryCode ?? "EG"}
           label={t("countryCode")}
         />
@@ -91,23 +92,13 @@ function DetailFields({ hotel }: { hotel?: NonNullable<Hotel> }) {
         />
       </div>
 
+      <LocationField
+        defaultValue={hotel?.locationUrl}
+        latitude={hotel?.latitude}
+        longitude={hotel?.longitude}
+      />
+
       <div className="grid gap-4 sm:grid-cols-4">
-        <Input
-          name="latitude"
-          type="number"
-          step="0.0000001"
-          dir="ltr"
-          defaultValue={hotel?.latitude ?? ""}
-          label={t("latitude")}
-        />
-        <Input
-          name="longitude"
-          type="number"
-          step="0.0000001"
-          dir="ltr"
-          defaultValue={hotel?.longitude ?? ""}
-          label={t("longitude")}
-        />
         <Input
           name="checkInTime"
           type="time"
@@ -127,7 +118,7 @@ function DetailFields({ hotel }: { hotel?: NonNullable<Hotel> }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Input name="phone" dir="ltr" defaultValue={hotel?.phone ?? ""} label={t("phone")} />
+        <PhoneInput name="phone" defaultValue={hotel?.phone ?? ""} label={t("phone")} />
         <Input
           name="email"
           type="email"

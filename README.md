@@ -1,4 +1,4 @@
-# Last Line Travel
+# travelogy-co
 
 B2B travel booking platform — an agent portal and a back-office, bilingual (Arabic-first) with full RTL support.
 

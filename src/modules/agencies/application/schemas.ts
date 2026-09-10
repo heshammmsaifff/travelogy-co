@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isCountryCode } from "@/shared/lib/countries";
+
 /** Agency management schemas (CLAUDE.md §13, Phase 2). Messages are i18n keys. */
 
 export const AGENCY_STATUSES = ["pending", "active", "suspended", "rejected"] as const;
@@ -37,10 +39,36 @@ export const updateAgencySchema = z.object({
   legalName: z.string().trim().max(200).optional().or(z.literal("")),
   phone: z.string().trim().max(30).optional().or(z.literal("")),
   website: z.string().trim().max(200).optional().or(z.literal("")),
-  countryCode: z.string().trim().length(2, "auth.validation.countryRequired").toUpperCase(),
+  countryCode: z
+    .string()
+    .trim()
+    .length(2, "auth.validation.countryRequired")
+    .toUpperCase()
+    .refine(isCountryCode, "auth.validation.countryRequired"),
   city: z.string().trim().max(120).optional().or(z.literal("")),
   address: z.string().trim().max(400).optional().or(z.literal("")),
   commercialRegNo: z.string().trim().max(60).optional().or(z.literal("")),
   taxId: z.string().trim().max(60).optional().or(z.literal("")),
 });
 export type UpdateAgencyInput = z.infer<typeof updateAgencySchema>;
+
+export const createAgencyUserSchema = z.object({
+  agencyId: z.string().uuid(),
+  fullName: z.string().trim().min(2, "auth.validation.nameRequired").max(120),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(1, "auth.validation.emailRequired")
+    .email("auth.validation.emailInvalid"),
+  roleId: z.string().uuid("access.validation.roleRequired"),
+});
+export type CreateAgencyUserInput = z.infer<typeof createAgencyUserSchema>;
+
+export const setAgencyUserStatusSchema = z.object({
+  agencyId: z.string().uuid(),
+  userId: z.string().uuid(),
+  status: z.enum(["active", "suspended"]),
+});
+export type SetAgencyUserStatusInput = z.infer<typeof setAgencyUserStatusSchema>;
+

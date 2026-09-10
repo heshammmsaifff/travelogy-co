@@ -1,12 +1,12 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
-import { getTranslations } from "next-intl/server";
 import type { Locale } from "@/shared/i18n/config";
-import { Link } from "@/shared/i18n/navigation";
-import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 import { Card, CardBody } from "@/shared/ui/card";
+import { cn } from "@/shared/lib/cn";
+import { SiteHeader, SiteFooter } from "@/modules/cms/presentation/site-chrome";
 
 /**
- * Shared frame for every auth screen: centred card, wordmark, locale switcher.
+ * Shared frame for every auth screen: site navbar, centred card, and footer.
  * A Server Component — none of this chrome needs client JavaScript.
  */
 export async function AuthShell({
@@ -15,35 +15,44 @@ export async function AuthShell({
   subtitle,
   children,
   footer,
+  cardClassName,
 }: {
   locale: Locale;
   title: string;
   subtitle?: string;
   children: ReactNode;
   footer?: ReactNode;
+  cardClassName?: string;
 }) {
-  const t = await getTranslations();
-
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 py-10">
-      <div className="flex w-full max-w-lg items-center justify-between">
-        <Link href="/" className="text-lg font-semibold tracking-tight text-ink">
-          {t("app.name")}
-        </Link>
-        <LocaleSwitcher current={locale} label={t("common.language")} />
-      </div>
+    <div className="flex min-h-dvh flex-col bg-canvas">
+      <SiteHeader locale={locale} />
 
-      <Card className="w-full max-w-lg">
-        <CardBody className="space-y-5 p-6 sm:p-8">
-          <div className="space-y-1.5">
-            <h1 className="text-xl font-semibold tracking-tight text-ink">{title}</h1>
-            {subtitle ? <p className="text-sm text-ink-muted">{subtitle}</p> : null}
-          </div>
-          {children}
-        </CardBody>
-      </Card>
+      <main className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-12 sm:px-6">
+        <Card className={cn("w-full max-w-lg shadow-raised border-border/80", cardClassName)}>
+          <CardBody className="space-y-6 p-6 sm:p-8">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="rounded-2xl bg-[#063B4A] p-2.5 shadow-sm border border-[#D8AE4A]/40 mb-1">
+                <Image
+                  src="/logo.png"
+                  alt="Travelogy"
+                  width={44}
+                  height={30}
+                  className="h-7 w-auto object-contain brightness-110"
+                  priority
+                />
+              </div>
+              <h1 className="text-xl font-bold tracking-tight text-ink">{title}</h1>
+              {subtitle ? <p className="text-sm text-ink-muted max-w-sm">{subtitle}</p> : null}
+            </div>
+            {children}
+          </CardBody>
+        </Card>
 
-      {footer ? <div className="text-sm text-ink-muted">{footer}</div> : null}
-    </main>
+        {footer ? <div className="text-sm text-ink-muted">{footer}</div> : null}
+      </main>
+
+      <SiteFooter locale={locale} />
+    </div>
   );
 }

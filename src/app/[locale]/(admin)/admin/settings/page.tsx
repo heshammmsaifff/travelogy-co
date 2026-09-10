@@ -1,6 +1,14 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { forbidden, notFound } from "next/navigation";
-import { LuChevronLeft, LuChevronRight, LuPercent, LuPlug } from "react-icons/lu";
+import {
+  LuBuilding2,
+  LuChevronLeft,
+  LuChevronRight,
+  LuPercent,
+  LuPlug,
+  LuReceipt,
+  LuTicket,
+} from "react-icons/lu";
 import { isLocale } from "@/shared/i18n/config";
 import { Link } from "@/shared/i18n/navigation";
 import { Card, CardBody } from "@/shared/ui/card";
@@ -16,7 +24,8 @@ export default async function SettingsPage({ params }: { params: Promise<{ local
   const user = await getCurrentUser();
   const canSuppliers = can(user, "settings.suppliers.manage");
   const canMarkup = can(user, "settings.markup.manage");
-  if (!canSuppliers && !canMarkup) forbidden();
+  const canFinance = can(user, "finance.settings.manage");
+  if (!canSuppliers && !canMarkup && !canFinance) forbidden();
 
   const t = await getTranslations("settings");
   const Chevron = locale === "ar" ? LuChevronLeft : LuChevronRight;
@@ -24,6 +33,9 @@ export default async function SettingsPage({ params }: { params: Promise<{ local
   const items = [
     { key: "suppliers", href: "/admin/settings/suppliers", icon: LuPlug, visible: canSuppliers },
     { key: "markup", href: "/admin/settings/markup", icon: LuPercent, visible: canMarkup },
+    { key: "tax", href: "/admin/settings/tax", icon: LuReceipt, visible: canFinance },
+    { key: "promoCodes", href: "/admin/settings/promo-codes", icon: LuTicket, visible: canFinance },
+    { key: "company", href: "/admin/settings/company", icon: LuBuilding2, visible: canFinance },
   ] as const;
 
   return (

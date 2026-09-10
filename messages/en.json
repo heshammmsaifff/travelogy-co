@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Last Line Travel",
-    "tagline": "B2B travel booking platform"
+    "name": "Travelogy",
+    "tagline": "BOOK · CONNECT · GROW"
   },
   "common": {
     "save": "Save",
@@ -23,7 +23,11 @@
     },
     "backToHome": "Back to home",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "edit": "Edit",
+    "searchCountry": "Search for a country",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "devKitchenSink": {
     "title": "UI kitchen sink",
@@ -134,7 +138,6 @@
       "phone": "Phone number",
       "agencyName": "Agency name",
       "countryCode": "Country code",
-      "countryCodeHint": "Two letters, e.g. EG",
       "city": "City",
       "commercialRegNo": "Commercial registration no.",
       "taxId": "Tax ID"
@@ -258,20 +261,102 @@
         "balancePending": "Your running balance is derived from the payments ledger and appears here when the finance module ships (Phase 5)."
       },
       "upcoming": {
-        "title": "Coming modules",
-        "description": "Not available yet — listed here for clarity.",
-        "search": {
-          "title": "Hotel search & booking",
-          "phase": "Phases 3–4"
-        },
-        "bookings": {
-          "title": "Booking history & quotations",
-          "phase": "Phases 4–5"
+        "title": "Coming next",
+        "description": "Not available yet — listed here so you know what is missing.",
+        "booking": {
+          "title": "Bookings",
+          "phase": "Live"
         },
         "statement": {
-          "title": "Statement of account & invoices",
-          "phase": "Phase 5"
+          "title": "Statement of account and invoices",
+          "phase": "Live"
         }
+      },
+      "quickLinks": {
+        "title": "What you can do now",
+        "description": "Quick access to platform services and products.",
+        "search": {
+          "title": "Search availability",
+          "body": "Contracted hotels with your sell prices already applied."
+        },
+        "transfers": {
+          "title": "Transfers",
+          "body": "Book airport and intercity transfers."
+        },
+        "packages": {
+          "title": "Packages & Tours",
+          "body": "Fixed tours and scheduled departures."
+        },
+        "quotations": {
+          "title": "Saved quotations",
+          "body": "Build a proposal for a customer and come back to it."
+        },
+        "bookings": {
+          "title": "Your bookings",
+          "body": "Everything you have booked, and where each one stands."
+        },
+        "statement": {
+          "title": "Statement of account",
+          "body": "Track your balance, invoices and payment ledger."
+        },
+        "team": {
+          "title": "Team management",
+          "body": "Manage your agency's sub-users, roles, and access."
+        },
+        "profile": {
+          "title": "Company profile",
+          "body": "Keep the details that appear on your documents up to date."
+        }
+      }
+    },
+    "nav": {
+      "label": "Agent portal",
+      "groupBookings": "Core & Bookings",
+      "groupServices": "Services & Transfers",
+      "groupAccount": "Agency & Account",
+      "overview": "Dashboard",
+      "search": "Search",
+      "quotations": "Quotations",
+      "bookings": "Bookings",
+      "statement": "Statement",
+      "team": "Team",
+      "profile": "Company",
+      "transfers": "Transfers",
+      "packages": "Packages"
+    },
+    "team": {
+      "title": "Team management",
+      "description": "View and manage team member accounts and sub-users authorized for your agency.",
+      "listTitle": "Team members",
+      "empty": "No team members found.",
+      "colName": "Name",
+      "colEmail": "Email",
+      "colRole": "Role",
+      "colStatus": "Status",
+      "colCreated": "Added",
+      "colActions": "Actions",
+      "create": "Add member",
+      "createTitle": "Add team member",
+      "createDescription": "Create a team member account for this agency. A temporary password will be generated.",
+      "createdTitle": "Account created",
+      "created": "Team member created.",
+      "createFailed": "Could not create the team member.",
+      "secretWarning": "Copy this temporary password now. It will not be shown again. The user will be required to change it upon first sign-in.",
+      "copied": "Password copied to clipboard.",
+      "copyManually": "Please copy the password manually.",
+      "copy": "Copy",
+      "secretAcknowledge": "I have copied the password",
+      "selectRole": "Select a role",
+      "reactivated": "Team member reactivated.",
+      "suspended": "Team member suspended.",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "suspendConfirmTitle": "Suspend this team member?",
+      "suspendConfirmBody": "{name} will be prevented from signing in until reactivated.",
+      "fields": {
+        "fullName": "Full name",
+        "email": "Email address",
+        "role": "Role"
       }
     }
   },
@@ -286,25 +371,40 @@
         "rolesAndPermissions": "{roles} roles · {permissions} permissions"
       },
       "requests": {
-        "title": "Agency registration requests",
-        "description": "Requests awaiting review. Approving and rejecting arrive in Phase 2.",
+        "title": "Pending agency registrations",
+        "description": "New applications submitted by travel agencies awaiting review and approval.",
+        "viewAll": "View all agencies",
+        "reviewAction": "Review application for {name}",
         "colReference": "Reference",
         "colCompany": "Agency",
         "colEmail": "Email",
         "colCountry": "Country",
+        "colDate": "Submitted",
         "empty": "No requests are awaiting review.",
         "noPermission": "You do not have permission to view agencies."
       }
     },
     "nav": {
       "label": "Back-office sections",
+      "groupOperations": "Operations & Services",
+      "groupPartners": "Partners & Finance",
+      "groupSystem": "System & Management",
       "overview": "Overview",
+      "bookings": "Bookings",
+      "finance": "Finance",
+      "content": "Content",
+      "reports": "Reports",
       "agencies": "Agencies",
       "staff": "Staff",
       "roles": "Roles & permissions",
       "audit": "Audit log",
       "hotels": "Hotels",
-      "settings": "Settings"
+      "settings": "Settings",
+      "transfers": "Transfers",
+      "drivers": "Drivers",
+      "dispatch": "Dispatch",
+      "packages": "Packages",
+      "crm": "CRM"
     }
   },
   "access": {
@@ -352,7 +452,8 @@
       "empty": "No roles yet.",
       "scope": {
         "admin": "Back office",
-        "agent": "Agents"
+        "agent": "Agents",
+        "driver": "Drivers"
       },
       "editLabel": "Edit the {name} role",
       "deleteLabel": "Delete the {name} role",
@@ -367,6 +468,7 @@
       "fields": {
         "key": "Key",
         "keyHint": "Lower-case letters and underscores. Cannot be changed later.",
+        "scope": "Scope",
         "nameAr": "Name (Arabic)",
         "nameEn": "Name (English)",
         "descriptionAr": "Description (Arabic)",
@@ -382,7 +484,14 @@
         "settings": "Settings",
         "audit": "Audit",
         "hotels": "Hotels",
-        "cms": "Content"
+        "cms": "Content",
+        "bookings": "Bookings",
+        "finance": "Finance",
+        "reports": "Reports",
+        "transfers": "Transfers",
+        "drivers": "Drivers & operations",
+        "packages": "Packages",
+        "crm": "CRM"
       }
     },
     "staff": {
@@ -487,7 +596,30 @@
       "colEmail": "Email",
       "colRole": "Role",
       "colStatus": "Status",
-      "empty": "No users yet."
+      "empty": "No users yet.",
+      "create": "Add member",
+      "createTitle": "Add agency member",
+      "createDescription": "Create a team member account for this agency. A temporary password will be generated.",
+      "createdTitle": "Account created",
+      "created": "Agency member created.",
+      "createFailed": "Could not create the agency member.",
+      "secretWarning": "Copy this temporary password now. It will not be shown again. The user will be required to change it upon first sign-in.",
+      "copied": "Password copied to clipboard.",
+      "copyManually": "Please copy the password manually.",
+      "copy": "Copy",
+      "secretAcknowledge": "I have copied the password",
+      "selectRole": "Select a role",
+      "reactivated": "Member account reactivated.",
+      "suspended": "Member account suspended.",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "suspendConfirmTitle": "Suspend this member?",
+      "suspendConfirmBody": "{name} will be prevented from signing in until reactivated.",
+      "fields": {
+        "fullName": "Full name",
+        "email": "Email address",
+        "role": "Role"
+      }
     },
     "fields": {
       "name": "Agency name",
@@ -517,21 +649,33 @@
       "statusFailed": "Could not change the status.",
       "creditLimitInvalid": "That is not a valid credit limit.",
       "creditLimitFailed": "Could not update the credit limit.",
-      "updateFailed": "Could not save the details."
+      "updateFailed": "Could not save the details.",
+      "roleNotAgent": "The selected role must be an agency role.",
+      "cannotChangeSelfStatus": "You cannot change your own account status.",
+      "updateStatusFailed": "Could not update the member status."
     }
   },
   "audit": {
-    "title": "Audit log",
-    "description": "An unalterable record of every change to roles, permissions, statuses and credit limits.",
-    "listTitle": "Events",
-    "listCount": "{count} events",
-    "colWhen": "When",
+    "title": "Audit & Activity Log",
+    "description": "An immutable, secure record tracking all administrative actions, account updates, agency statuses, and permission grants.",
+    "listTitle": "Activity Log",
+    "listCount": "{count} events recorded",
+    "colWhen": "Timestamp",
     "colActor": "Actor",
-    "colAction": "Action",
-    "colDetails": "Details",
-    "empty": "No events recorded yet.",
-    "systemActor": "System",
-    "pageOf": "Page {page} of {total}"
+    "colAction": "Action Type",
+    "colDetails": "Activity Details & Impact",
+    "empty": "No events found matching your filter.",
+    "systemActor": "System Automated",
+    "pageOf": "Page {page} of {total}",
+    "filterAll": "All Activities",
+    "filterUsers": "Users & Staff",
+    "filterAgencies": "Travel Agencies",
+    "filterRoles": "Roles & Access",
+    "searchPlaceholder": "Search by email or action...",
+    "showTechnical": "View Raw Data (JSON)",
+    "hideTechnical": "Hide Raw Data",
+    "changedFrom": "from",
+    "changedTo": "to"
   },
   "hotels": {
     "title": "Hotels",
@@ -615,14 +759,17 @@
       "areaEn": "Area (English)",
       "addressAr": "Address (Arabic)",
       "addressEn": "Address (English)",
-      "latitude": "Latitude",
-      "longitude": "Longitude",
       "checkIn": "Check-in",
       "checkOut": "Check-out",
       "phone": "Phone",
       "email": "Email",
       "website": "Website",
-      "internalNotes": "Internal notes (never shown to agents)"
+      "internalNotes": "Internal notes (never shown to agents)",
+      "locationUrl": "Location link",
+      "locationUrlHint": "Paste the Google Maps link for the hotel. The coordinates are read from it.",
+      "locationUrlNoCoordinates": "This link has no coordinates in it. Shortened links (maps.app.goo.gl) do not carry any — open it in Maps and copy the full link from the address bar.",
+      "locationUrlInvalid": "That does not look like a web link.",
+      "openInMaps": "Open in Maps"
     },
     "amenities": {
       "title": "Amenities",
@@ -947,7 +1094,8 @@
       "noDatesSelected": "No dates matched your selection.",
       "imageSaveFailed": "Could not save the image.",
       "coverExists": "A cover image already exists.",
-      "codeTaken": "That code is already in use."
+      "codeTaken": "That code is already in use.",
+      "invalidLocationUrl": "The location link must start with http:// or https://"
     }
   },
   "settings": {
@@ -960,6 +1108,18 @@
     "markup": {
       "title": "Markup",
       "description": "The margin added to contracted rates."
+    },
+    "tax": {
+      "title": "Tax rates",
+      "description": "The rate applied to new bookings."
+    },
+    "promoCodes": {
+      "title": "Promo codes",
+      "description": "Discounts agents can apply at booking."
+    },
+    "company": {
+      "title": "Company details",
+      "description": "The issuer printed on vouchers and invoices."
     }
   },
   "suppliers": {
@@ -1087,6 +1247,998 @@
     "errors": {
       "searchFailed": "The search could not be completed. Please try again.",
       "partialResults": "Partial results: {count} supplier(s) did not respond."
+    }
+  },
+  "site": {
+    "nav": {
+      "home": "Home",
+      "about": "About",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "login": "Sign in",
+      "register": "Become a partner",
+      "menu": "Menu",
+      "dashboard": "Dashboard",
+      "dashboardAdmin": "Back office",
+      "dashboardAgent": "Agent portal",
+      "dashboardDriver": "Driver portal"
+    },
+    "hero": {
+      "eyebrow": "B2B travel platform",
+      "title": "Hotel inventory your agency can actually sell",
+      "subtitle": "Search contracted rates, hold them in a quotation for your customer, and book against your own credit account — in one place, in Arabic or English.",
+      "ctaPrimary": "Become a partner",
+      "ctaSecondary": "Sign in to your account",
+      "ctaDashboard": "Go to dashboard"
+    },
+    "features": {
+      "title": "Built for the way agencies work",
+      "description": "Not a consumer booking site with a login bolted on.",
+      "inventory": {
+        "title": "One search, every supplier",
+        "body": "Our own contracted hotels and external suppliers answer the same search and return the same shape. You never have to ask where a room came from."
+      },
+      "credit": {
+        "title": "Your own credit account",
+        "body": "Book against a credit limit we agree with you and settle on a statement of account. No cards, no online payments, no surprises."
+      },
+      "quotations": {
+        "title": "Quotations that hold still",
+        "body": "Save the offers you want to propose. The price you quoted is the price you see when you reopen it, with the time it was captured shown alongside."
+      },
+      "team": {
+        "title": "Your team, your rules",
+        "body": "Add your own sub-users and decide what each of them may do. Your bookings and your prices are never visible to another agency."
+      }
+    },
+    "how": {
+      "title": "How it works",
+      "step1": {
+        "title": "Apply",
+        "body": "Send your company details. We review every application by hand."
+      },
+      "step2": {
+        "title": "Get approved",
+        "body": "We set your credit limit and activate your account."
+      },
+      "step3": {
+        "title": "Search and quote",
+        "body": "Find availability, save a quotation, share the price with your customer."
+      },
+      "step4": {
+        "title": "Book and settle",
+        "body": "Confirm the booking against your credit and settle on your statement."
+      }
+    },
+    "cta": {
+      "title": "Ready to start selling?",
+      "body": "Registration takes a few minutes. Approval is manual, so you deal with people rather than a form.",
+      "button": "Become a partner",
+      "goToDashboard": "Go to dashboard"
+    },
+    "footer": {
+      "tagline": "A B2B travel booking platform for agents and corporate partners.",
+      "company": "Company",
+      "legal": "Legal",
+      "account": "Account",
+      "rights": "All rights reserved."
+    },
+    "contentMissing": "This page has no content yet."
+  },
+  "quotations": {
+    "title": "Quotations",
+    "description": "Offers you saved to propose to a customer. Prices are a snapshot from when you saved them.",
+    "navLabel": "Quotations",
+    "empty": "You have not saved a quotation yet. Search for availability and save the offers you want to propose.",
+    "emptyCta": "Search availability",
+    "reference": "Reference",
+    "titleField": "Quotation title",
+    "titlePlaceholder": "e.g. Cairo, November — Mr Ahmed",
+    "guestName": "Customer name",
+    "guestPlaceholder": "Who this quote is for",
+    "validUntil": "Hold price until",
+    "notes": "Notes",
+    "notesPlaceholder": "Anything you want to remember about this quote",
+    "stay": "Stay",
+    "occupancy": "Occupancy",
+    "createdBy": "Saved by",
+    "createdAt": "Saved",
+    "items": "Options",
+    "itemCount": "{count} options",
+    "noItems": "This quotation has no options yet.",
+    "total": "Total",
+    "capturedAt": "Price read {date}",
+    "staleTitle": "These prices may have moved",
+    "staleBody": "A saved price is a snapshot, not a live rate. Search again before you confirm anything with your customer.",
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent to customer",
+      "accepted": "Accepted",
+      "expired": "Expired"
+    },
+    "markSent": "Mark as sent",
+    "markAccepted": "Mark as accepted",
+    "markExpired": "Mark as expired",
+    "reopen": "Reopen as draft",
+    "statusChanged": "Quotation status updated.",
+    "save": "Save quotation",
+    "saved": "Quotation saved.",
+    "updated": "Quotation updated.",
+    "delete": "Delete quotation",
+    "deleted": "Quotation deleted.",
+    "deleteConfirmTitle": "Delete this quotation?",
+    "deleteConfirmBody": "The saved options and prices will be removed. This cannot be undone.",
+    "removeItem": "Remove option",
+    "itemRemoved": "Option removed.",
+    "removeItemConfirmTitle": "Remove this option?",
+    "removeItemConfirmBody": "It will be taken off the quotation.",
+    "addToQuotation": "Save to quotation",
+    "addDialogTitle": "Save this option",
+    "addDialogDescription": "Add it to a quotation you are already building, or start a new one.",
+    "existingQuotation": "Add to an existing quotation",
+    "newQuotation": "Start a new quotation",
+    "chooseQuotation": "Choose a quotation",
+    "added": "Option saved to the quotation.",
+    "openQuotation": "Open quotation",
+    "backToList": "Back to quotations",
+    "errors": {
+      "saveFailed": "We could not save the quotation.",
+      "notFound": "That quotation no longer exists.",
+      "noAgency": "Your account is not linked to an agency.",
+      "invalidInput": "Please check the fields and try again."
+    },
+    "statusLabel": "Status",
+    "detailsSection": "Quotation details",
+    "detailsSectionDescription": "Only you and your colleagues see these — they are for your own records.",
+    "untitled": "Untitled quotation"
+  },
+  "profile": {
+    "title": "Company profile",
+    "description": "The details we hold for your company. Some of them appear on your vouchers and invoices.",
+    "navLabel": "Company",
+    "sections": {
+      "identity": "Company",
+      "contact": "Contact",
+      "legal": "Registration",
+      "account": "Account",
+      "identityForm": "Company details"
+    },
+    "fields": {
+      "name": "Trading name",
+      "legalName": "Registered legal name",
+      "email": "Email address",
+      "phone": "Phone",
+      "website": "Website",
+      "countryCode": "Country",
+      "city": "City",
+      "address": "Address",
+      "commercialRegNo": "Commercial registration no.",
+      "taxId": "Tax ID",
+      "code": "Agency reference",
+      "status": "Account status",
+      "creditLimit": "Credit limit",
+      "currency": "Currency"
+    },
+    "locked": "Set by Last Line Travel. Contact us to change it.",
+    "save": "Save changes",
+    "saved": "Company profile updated.",
+    "errors": {
+      "saveFailed": "We could not save your changes.",
+      "invalidInput": "Please check the fields and try again."
+    }
+  },
+  "bookings": {
+    "navLabel": "Bookings",
+    "title": "Bookings",
+    "description": "Every booking your agency has made.",
+    "notYet": "The booking engine arrives in the next phase.",
+    "searchCta": "Search availability",
+    "quotationsCta": "View quotations",
+    "adminTitle": "Bookings",
+    "adminDescription": "Bookings across every agency.",
+    "empty": "No bookings yet. Search for availability and book a stay.",
+    "reference": "Reference",
+    "agency": "Agency",
+    "hotel": "Hotel",
+    "guest": "Lead guest",
+    "stay": "Stay",
+    "nights": "Nights",
+    "rooms": "Rooms",
+    "occupancy": "Occupancy",
+    "total": "Total",
+    "statusLabel": "Status",
+    "created": "Booked",
+    "status": {
+      "pending": "Pending confirmation",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "book": "Book this room",
+    "dialogTitle": "Confirm booking details",
+    "dialogDescription": "We re-check the price and availability when you submit. If the rate has moved, the booking is refused rather than charged at a different amount.",
+    "leadGuestName": "Lead guest name",
+    "leadGuestNamePlaceholder": "As it should appear on the voucher",
+    "leadGuestEmail": "Guest email",
+    "leadGuestPhone": "Guest phone",
+    "specialRequests": "Special requests",
+    "specialRequestsPlaceholder": "Late arrival, high floor, anything the hotel should know",
+    "submit": "Confirm booking",
+    "created_": "Booking created.",
+    "creditNote": "This booking will be charged to your credit account.",
+    "confirm": "Confirm",
+    "confirmed": "Booking confirmed.",
+    "cancel": "Cancel booking",
+    "cancelled": "Booking cancelled.",
+    "complete": "Mark completed",
+    "completed": "Booking marked completed.",
+    "cancelConfirmTitle": "Cancel this booking?",
+    "cancelConfirmBody": "Anything this booking was holding is released and the amount stops counting against your credit. This cannot be undone.",
+    "cancelReason": "Reason",
+    "cancelReasonPlaceholder": "Why is this being cancelled?",
+    "confirmConfirmTitle": "Confirm this booking?",
+    "confirmConfirmBody": "Confirm only after the hotel has accepted it.",
+    "cancellationReason": "Cancellation reason",
+    "backToList": "Back to bookings",
+    "filters": {
+      "all": "All",
+      "label": "Status"
+    },
+    "errors": {
+      "createFailed": "We could not create this booking.",
+      "unavailable": "That offer is no longer available. Search again to see current prices.",
+      "creditExceeded": "This booking would take you past your credit limit.",
+      "notFound": "That booking no longer exists.",
+      "actionFailed": "We could not complete that action.",
+      "invalidInput": "Please check the fields and try again.",
+      "promoRejected": "That promotion code cannot be used for this booking."
+    },
+    "detailsSection": "Booking details",
+    "productLabel": "Product",
+    "product": {
+      "hotel": "Hotel",
+      "transfer": "Transfer",
+      "package": "Package"
+    },
+    "datesLabel": "Dates"
+  },
+  "credit": {
+    "title": "Credit account",
+    "limit": "Credit limit",
+    "outstanding": "Outstanding",
+    "available": "Available to book",
+    "description": "Outstanding covers every booking that still stands — pending, confirmed and completed. Cancelling releases it."
+  },
+  "finance": {
+    "navLabel": "Finance",
+    "title": "Finance",
+    "description": "Receivables across every agency, and the payments ledger.",
+    "statementTitle": "Statement of account",
+    "statementDescription": "Every charge and every payment on your account, oldest first.",
+    "receivables": "Receivables",
+    "agency": "Agency",
+    "creditLimit": "Credit limit",
+    "outstanding": "Bookings outstanding",
+    "paid": "Paid",
+    "balance": "Balance owed",
+    "available": "Available credit",
+    "totalOwed": "Total owed",
+    "date": "Date",
+    "type": "Type",
+    "reference": "Reference",
+    "detail": "Detail",
+    "debit": "Charge",
+    "credit": "Payment",
+    "runningBalance": "Balance",
+    "entryType": {
+      "booking": "Booking",
+      "payment": "Payment",
+      "refund": "Refund"
+    },
+    "emptyStatement": "Nothing on this account yet. Charges appear when you book; payments when we record one.",
+    "noAgencies": "No active agencies yet.",
+    "recordPayment": "Record payment",
+    "recordPaymentFor": "Record a payment for {agency}",
+    "recordPaymentDescription": "This is the credit side of the account. It cannot be edited or deleted afterwards, so a correction is a second entry.",
+    "kind": "Entry",
+    "kindOption": {
+      "receipt": "Payment received",
+      "refund": "Refund to agent"
+    },
+    "method": "Method",
+    "methodOption": {
+      "bank_transfer": "Bank transfer",
+      "cheque": "Cheque",
+      "cash": "Cash",
+      "adjustment": "Adjustment"
+    },
+    "amount": "Amount",
+    "paidOn": "Value date",
+    "externalReference": "Bank or cheque reference",
+    "notes": "Notes",
+    "saved": "Payment recorded.",
+    "viewStatement": "View statement",
+    "backToFinance": "Back to finance",
+    "errors": {
+      "recordFailed": "We could not record that payment.",
+      "invalidInput": "Please check the fields and try again."
+    }
+  },
+  "promos": {
+    "navLabel": "Promo codes",
+    "title": "Promo codes",
+    "description": "Discounts an agent can apply at booking. A code that cannot be used refuses the booking rather than being ignored.",
+    "code": "Code",
+    "nameField": "Name",
+    "discount": "Discount",
+    "window": "Valid",
+    "usage": "Used",
+    "scope": "Scope",
+    "allAgencies": "All agencies",
+    "create": "New promo code",
+    "edit": "Edit",
+    "save": "Save",
+    "saved": "Promo code saved.",
+    "delete": "Delete",
+    "deleted": "Promo code deleted.",
+    "deleteConfirmTitle": "Delete this promo code?",
+    "deleteConfirmBody": "Bookings that already used it keep their discount. The code stops working from now on.",
+    "empty": "No promo codes yet.",
+    "discountType": "Discount type",
+    "percentage": "Percentage",
+    "fixed": "Fixed amount",
+    "discountValue": "Value",
+    "minBookingTotal": "Minimum booking total",
+    "maxDiscount": "Maximum discount",
+    "validFrom": "Valid from",
+    "validTo": "Valid to",
+    "maxRedemptions": "Total uses",
+    "maxPerAgency": "Uses per agency",
+    "unlimited": "Unlimited",
+    "isActive": "Active",
+    "agencyScope": "Restrict to one agency",
+    "promoCode": "Promo code",
+    "promoOptional": "Promo code (optional)",
+    "errors": {
+      "saveFailed": "We could not save this promo code.",
+      "duplicate": "That code already exists.",
+      "invalidInput": "Please check the fields and try again."
+    },
+    "unknownAgency": "An agency that is no longer active"
+  },
+  "tax": {
+    "navLabel": "Tax",
+    "title": "Tax rates",
+    "description": "The default rate is applied to every new booking. Exactly one rate can be the default.",
+    "code": "Code",
+    "nameField": "Name",
+    "percent": "Rate",
+    "isDefault": "Default",
+    "isActive": "Active",
+    "create": "New tax rate",
+    "save": "Save",
+    "saved": "Tax rate saved.",
+    "delete": "Delete",
+    "deleted": "Tax rate deleted.",
+    "deleteConfirmTitle": "Delete this tax rate?",
+    "deleteConfirmBody": "Bookings already charged keep the rate recorded on them.",
+    "empty": "No tax rates configured.",
+    "warning": "Changing the default changes what every new booking is charged. Existing bookings keep the rate they were created with.",
+    "errors": {
+      "saveFailed": "We could not save this tax rate.",
+      "invalidInput": "Please check the fields and try again."
+    }
+  },
+  "documents": {
+    "voucherTitle": "Hotel voucher",
+    "invoiceTitle": "Invoice",
+    "print": "Print / save as PDF",
+    "issuedOn": "Issued",
+    "taxNumber": "Tax number",
+    "guestSection": "Guest",
+    "staySection": "Stay",
+    "linesSection": "Charges",
+    "billedTo": "Billed to",
+    "bookedBy": "Booked by",
+    "agencyReference": "Agency reference",
+    "city": "City",
+    "roomType": "Room",
+    "mealPlan": "Meal plan",
+    "description": "Description",
+    "unitPrice": "Per night",
+    "subtotal": "Subtotal",
+    "notYetConfirmed": "this booking has not been confirmed yet, so do not travel on this voucher.",
+    "voucherFooter": "Present this voucher at check-in. It shows no prices: what the agency paid is not the hotel's concern.",
+    "settlementNote": "Settled against your credit account. There is no online payment.",
+    "voucher": "Voucher",
+    "invoice": "Invoice",
+    "voucherTransfer": "Transfer voucher",
+    "voucherTitleTransfer": "Transfer voucher",
+    "voucherFooterTransfer": "Show this voucher to the driver. It shows no prices: what the agency paid is not the supplier's concern.",
+    "voucherTitlePackage": "Tour voucher",
+    "voucherPackage": "Tour voucher",
+    "voucherFooterPackage": "Present this voucher to the tour operator. It shows no prices: what the agency paid is not the operator's concern."
+  },
+  "companyProfile": {
+    "navLabel": "Company details",
+    "title": "Company details",
+    "description": "Printed on every voucher and invoice as the issuing company.",
+    "legalName": "Legal name",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "website": "Website",
+    "taxNumber": "Tax number",
+    "commercialRegNo": "Commercial registration no.",
+    "invoiceFooter": "Invoice footer",
+    "invoiceFooterHint": "Payment instructions, bank details or terms, printed under the totals.",
+    "save": "Save",
+    "saved": "Company details updated.",
+    "errors": {
+      "saveFailed": "We could not save these details.",
+      "invalidInput": "Please check the fields and try again."
+    }
+  },
+  "cms": {
+    "navLabel": "Content",
+    "title": "Site content",
+    "description": "The homepage banners and the About, Privacy and Terms pages, exactly as visitors see them.",
+    "homeTab": "Homepage",
+    "bannersTab": "Homepage banners",
+    "pagesTab": "Static pages",
+    "homeSaved": "Homepage content saved.",
+    "home": {
+      "title": "Homepage content",
+      "lastUpdated": "Last updated",
+      "viewPublic": "View public site",
+      "saved": "Homepage content saved successfully.",
+      "saveFailed": "Failed to save homepage content.",
+      "tabs": {
+        "hero": "Hero section",
+        "features": "Features",
+        "how": "How it works",
+        "cta": "Call to action"
+      },
+      "hero": {
+        "heading": "Hero section",
+        "helper": "The first section visitors see at the top of the homepage.",
+        "eyebrowAr": "Promotional badge (Arabic)",
+        "eyebrowEn": "Promotional badge (English)",
+        "titleAr": "Main title (Arabic)",
+        "titleEn": "Main title (English)",
+        "subtitleAr": "Subtitle / Description (Arabic)",
+        "subtitleEn": "Subtitle / Description (English)"
+      },
+      "features": {
+        "heading": "Platform features",
+        "helper": "Overview of value propositions and core capabilities.",
+        "titleAr": "Section title (Arabic)",
+        "titleEn": "Section title (English)",
+        "subtitleAr": "Section description (Arabic)",
+        "subtitleEn": "Section description (English)",
+        "cardsHeading": "Feature cards",
+        "cardTitle": "Title",
+        "cardBody": "Description",
+        "keys": {
+          "inventory": "Hotel inventory",
+          "credit": "Credit account",
+          "quotations": "Fixed quotations",
+          "team": "Team and sub-users"
+        }
+      },
+      "how": {
+        "heading": "How it works",
+        "helper": "The 4-step onboarding journey for partner agencies.",
+        "titleAr": "Section title (Arabic)",
+        "titleEn": "Section title (English)",
+        "stepsHeading": "Steps",
+        "stepLabel": "Step {number}",
+        "stepTitle": "Step title",
+        "stepBody": "Step description"
+      },
+      "cta": {
+        "heading": "Bottom call to action",
+        "helper": "The final registration pitch before the footer.",
+        "titleAr": "Title (Arabic)",
+        "titleEn": "Title (English)",
+        "bodyAr": "Description (Arabic)",
+        "bodyEn": "Description (English)",
+        "buttonAr": "Button label (Arabic)",
+        "buttonEn": "Button label (English)"
+      }
+    },
+    "banners": {
+      "title": "Homepage banners",
+      "description": "Shown on the public homepage in the order below. A banner can be scheduled, so a campaign can be prepared without going live.",
+      "empty": "No banners yet. The homepage is complete without them — add one when there is something to promote.",
+      "create": "New banner",
+      "edit": "Edit banner",
+      "bannerTitle": "Headline",
+      "subtitle": "Subtitle",
+      "image": "Image",
+      "imageHint": "Wide artwork reads best. Compressed and converted to WebP before upload.",
+      "replaceImage": "Replace image",
+      "removeImage": "Remove image",
+      "noImage": "No image",
+      "ctaLabel": "Button label",
+      "ctaHref": "Button link",
+      "ctaHint": "A path like /register, or a full URL. Leave all three blank for a banner with no button.",
+      "sortOrder": "Position",
+      "isActive": "Visible",
+      "startsAt": "Show from",
+      "endsAt": "Hide after",
+      "scheduleHint": "Leave blank for no limit.",
+      "scheduled": "Scheduled",
+      "expired": "Expired",
+      "live": "Live",
+      "hidden": "Hidden",
+      "updated": "Updated",
+      "deleteConfirmTitle": "Delete this banner?",
+      "deleteConfirmBody": "It disappears from the homepage immediately. The uploaded image itself is kept."
+    },
+    "pages": {
+      "title": "Content pages",
+      "description": "Plain text. Blank lines start a new paragraph. Formatting marks are shown literally, never interpreted as HTML.",
+      "pageTitle": "Page title",
+      "body": "Body",
+      "viewPublic": "View the public page",
+      "lastUpdated": "Last updated",
+      "slug": {
+        "about": "About us",
+        "privacy": "Privacy policy",
+        "terms": "Terms and conditions"
+      }
+    },
+    "bannerSaved": "Banner saved.",
+    "bannerDeleted": "Banner deleted.",
+    "bannerActivated": "Banner is now visible.",
+    "bannerDeactivated": "Banner is now hidden.",
+    "pageSaved": "Page saved.",
+    "errors": {
+      "saveFailed": "We could not save that.",
+      "invalidInput": "Please check the fields and try again.",
+      "ctaIncomplete": "A button needs a link and a label in both languages, or none of the three.",
+      "windowOrder": "The end of the schedule must come after its start.",
+      "uploadFailed": "The image could not be uploaded."
+    }
+  },
+  "reports": {
+    "navLabel": "Reports",
+    "title": "Reports",
+    "description": "Bookings, agency performance and hotel performance, with margin. Every figure is computed in the database.",
+    "tabs": {
+      "bookings": "Bookings",
+      "agents": "Agencies",
+      "hotels": "Hotels"
+    },
+    "from": "From",
+    "to": "To",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "apply": "Apply",
+    "reset": "Reset",
+    "export": "Export CSV",
+    "exportHint": "Opens in Excel. Saved as UTF-8 with a byte-order mark so Arabic reads correctly.",
+    "empty": "Nothing matches these filters.",
+    "rowCount": "{count} rows",
+    "marginNote": "Margin is the sell price minus what the booking cost us. It is shown only to holders of the reports permission.",
+    "unknownMargin": "Not recorded",
+    "unknownMarginNote": "Bookings made before cost capture was added have no recorded cost. Their margin is left blank rather than shown as full profit.",
+    "columns": {
+      "reference": "Reference",
+      "bookedOn": "Booked",
+      "status": "Status",
+      "agency": "Agency",
+      "hotel": "Hotel",
+      "guest": "Guest",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "nights": "Nights",
+      "rooms": "Rooms",
+      "roomNights": "Room nights",
+      "sell": "Sell",
+      "net": "Cost",
+      "margin": "Margin",
+      "marginPct": "Margin %",
+      "bookingsTotal": "Bookings",
+      "bookingsLive": "Live",
+      "bookingsCancelled": "Cancelled",
+      "cancellationPct": "Cancelled %",
+      "paid": "Paid",
+      "balance": "Balance",
+      "city": "City",
+      "code": "Code"
+    },
+    "totals": "Totals",
+    "errors": {
+      "loadFailed": "We could not load this report."
+    }
+  },
+  "transfers": {
+    "navLabel": "Transfers",
+    "title": "Transfers",
+    "adminTitle": "Transfer inventory",
+    "adminDescription": "Vehicles, routes and the contracted rates behind them.",
+    "searchTitle": "Transfer search",
+    "searchDescription": "Airport and point-to-point transfers with your sell prices already applied.",
+    "tabs": {
+      "vehicles": "Vehicles",
+      "routes": "Routes",
+      "rates": "Rates"
+    },
+    "direction": {
+      "arrival": "Airport arrival",
+      "departure": "Airport departure",
+      "point_to_point": "Point to point"
+    },
+    "fields": {
+      "date": "Transfer date",
+      "passengers": "Passengers",
+      "vehicles": "Vehicles",
+      "city": "City",
+      "country": "Country",
+      "search": "Route or place",
+      "code": "Code",
+      "nameAr": "Name (AR)",
+      "nameEn": "Name (EN)",
+      "maxPassengers": "Seats",
+      "maxLuggage": "Luggage",
+      "from": "From",
+      "to": "To",
+      "durationMinutes": "Duration (minutes)",
+      "distanceKm": "Distance (km)",
+      "pricePerVehicle": "Cost per vehicle",
+      "validFrom": "Valid from",
+      "validTo": "Valid to",
+      "route": "Route",
+      "vehicle": "Vehicle",
+      "isActive": "Active",
+      "isClosed": "Closed",
+      "pickupTime": "Pickup time",
+      "flightNumber": "Flight number",
+      "pickupNotes": "Pickup notes",
+      "description": "Description",
+      "currency": "Currency",
+      "direction": "Direction"
+    },
+    "submit": "Search",
+    "book": "Book this transfer",
+    "perVehicle": "per vehicle",
+    "seats": "Seats: {count}",
+    "luggage": "Luggage: {count}",
+    "duration": "About {count} min",
+    "noResults": "No transfers match this search.",
+    "resultCount": "Options: {count}",
+    "dialogTitle": "Confirm transfer details",
+    "dialogDescription": "The price is re-checked when you submit. A flight number lets the driver track a delay.",
+    "created": "Transfer booked.",
+    "empty": "Nothing here yet.",
+    "createVehicle": "New vehicle",
+    "createRoute": "New route",
+    "createRate": "New rate",
+    "saved": "Saved.",
+    "deleted": "Deleted.",
+    "deleteConfirmTitle": "Delete this?",
+    "deleteConfirmBody": "Bookings already made keep their own copy of these details.",
+    "noAllocationNote": "Transfers have no per-day allotment: availability means a rate covers the date. If a fixed fleet is ever contracted, that becomes a capacity table.",
+    "errors": {
+      "saveFailed": "We could not save that.",
+      "invalidInput": "Please check the fields and try again.",
+      "overlap": "Another rate already covers part of that period for this route and vehicle.",
+      "unavailable": "That transfer is no longer available. Search again.",
+      "creditExceeded": "This booking would take you past your credit limit.",
+      "pastDate": "A transfer cannot be booked for a past date.",
+      "createFailed": "We could not create this booking.",
+      "duplicate": "That code is already in use."
+    },
+    "km": "km"
+  },
+  "drivers": {
+    "navLabel": "Drivers",
+    "title": "Drivers",
+    "description": "The people who drive, and what dispatch needs to know about them.",
+    "dispatchTitle": "Dispatch board",
+    "dispatchDescription": "Every vehicle due out on a day, and who is driving it.",
+    "create": "New driver",
+    "empty": "No drivers yet.",
+    "emptyDispatch": "No transfers on this date.",
+    "saved": "Saved.",
+    "activated": "Driver reactivated.",
+    "deactivated": "Driver deactivated.",
+    "assigned": "Driver assigned.",
+    "unassigned": "Driver removed from that vehicle.",
+    "advanced": "Job updated.",
+    "fields": {
+      "code": "Code",
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone",
+      "licenceNumber": "Licence number",
+      "licenceExpiry": "Licence expiry",
+      "defaultVehicle": "Usual vehicle",
+      "notes": "Notes",
+      "isActive": "Active",
+      "date": "Date",
+      "driver": "Driver",
+      "vehicle": "Vehicle",
+      "status": "Status",
+      "temporaryPassword": "Temporary password"
+    },
+    "vehicleLabel": "Car {seq} of {total}",
+    "unassignedSeat": "No driver yet",
+    "assign": "Assign",
+    "unassign": "Remove",
+    "licenceExpired": "Licence expired",
+    "licenceExpiringSoon": "Licence expires soon",
+    "inactive": "Inactive",
+    "activate": "Reactivate",
+    "deactivate": "Deactivate",
+    "deactivateConfirmTitle": "Deactivate this driver?",
+    "deactivateConfirmBody": "They will be signed out and cannot be given new jobs. Jobs already completed stay on the record.",
+    "createdTitle": "Driver account created",
+    "createdBody": "Give them this password. It is shown once and is not stored anywhere you can read it again.",
+    "noPrices": "Drivers never see prices. This screen shows none, and neither does theirs.",
+    "jobCount": "Vehicles: {count}",
+    "unfilledCount": "Without a driver: {count}",
+    "errors": {
+      "saveFailed": "We could not save that.",
+      "invalidInput": "Please check the fields and try again.",
+      "duplicate": "That code or email is already in use.",
+      "emailTaken": "An account with that email already exists.",
+      "seatTaken": "That vehicle already has a driver.",
+      "alreadyOnTransfer": "That driver is already on this transfer.",
+      "clash": "That driver is already booked at that time.",
+      "inactiveDriver": "That driver is not active.",
+      "cancelledBooking": "That booking is cancelled.",
+      "jobStarted": "That job has already started.",
+      "assignFailed": "We could not assign that driver."
+    }
+  },
+  "driver": {
+    "nav": {
+      "label": "Driver",
+      "today": "Today",
+      "upcoming": "Upcoming"
+    },
+    "title": "My jobs",
+    "todayTitle": "Today",
+    "upcomingTitle": "Coming up",
+    "empty": "Nothing scheduled.",
+    "emptyToday": "No jobs today.",
+    "pickupAt": "Pick up at {time}",
+    "noPickupTime": "No pickup time given",
+    "flight": "Flight {number}",
+    "guest": "Guest",
+    "passengers": "Passengers: {count}",
+    "carOf": "Car {seq} of {total}",
+    "notes": "Notes",
+    "yourNote": "Your note",
+    "notePlaceholder": "Anything the office should know",
+    "call": "Call",
+    "reference": "Reference",
+    "status": {
+      "assigned": "Not started",
+      "en_route": "On the way",
+      "arrived": "At pickup",
+      "picked_up": "Passengers aboard",
+      "completed": "Completed",
+      "no_show": "No show",
+      "cancelled": "Cancelled"
+    },
+    "action": {
+      "en_route": "I'm on the way",
+      "arrived": "I've arrived",
+      "picked_up": "Passengers aboard",
+      "completed": "Drop-off done",
+      "no_show": "Nobody came"
+    },
+    "noShowConfirmTitle": "Report a no-show?",
+    "noShowConfirmBody": "This closes the job. Ring the office first if you are not sure.",
+    "errors": {
+      "updateFailed": "We could not update that job.",
+      "backwards": "A job cannot go backwards.",
+      "closed": "That job is already closed.",
+      "forbidden": "That job is not yours."
+    }
+  },
+  "packages": {
+    "navLabel": "Packages",
+    "title": "Packages",
+    "description": "Fixed tours, their itineraries, their departures and their contracted rates.",
+    "searchTitle": "Package search",
+    "searchDescription": "Tours with dated departures and your sell prices already applied.",
+    "create": "New package",
+    "empty": "No packages yet.",
+    "noResults": "No departures match this search.",
+    "resultCount": "Departures: {count}",
+    "saved": "Saved.",
+    "deleted": "Deleted.",
+    "created": "Package booked.",
+    "tabs": {
+      "details": "Details",
+      "itinerary": "Itinerary",
+      "rates": "Rates",
+      "departures": "Departures"
+    },
+    "occupancy": {
+      "single": "Single",
+      "double": "Per person sharing",
+      "triple": "Triple",
+      "child": "Child"
+    },
+    "occupancyHint": {
+      "single": "Sole occupancy",
+      "double": "Sharing a twin or double",
+      "triple": "Third person sharing",
+      "child": "Child sharing with adults"
+    },
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "fields": {
+      "code": "Code",
+      "nameAr": "Name (AR)",
+      "nameEn": "Name (EN)",
+      "summary": "Summary",
+      "country": "Country",
+      "city": "City",
+      "durationNights": "Nights",
+      "inclusions": "What's included",
+      "exclusions": "What's not included",
+      "statusLabel": "Status",
+      "dayNumber": "Day",
+      "dayTitle": "Title",
+      "dayBody": "What happens",
+      "occupancyLabel": "Occupancy",
+      "netPerPerson": "Cost per person",
+      "currency": "Currency",
+      "validFrom": "Departures from",
+      "validTo": "Departures until",
+      "isClosed": "Closed",
+      "departureDate": "Departure date",
+      "returnDate": "Returns",
+      "capacity": "Seats",
+      "seatsSold": "Booked",
+      "notes": "Notes",
+      "from": "From",
+      "to": "To",
+      "travellers": "Travellers",
+      "search": "Tour or city"
+    },
+    "nights": "Nights: {count}",
+    "seatsLeft": "Seats left: {count}",
+    "perPerson": "per person",
+    "fromPrice": "From",
+    "book": "Book this departure",
+    "viewItinerary": "Itinerary",
+    "submit": "Search",
+    "dialogTitle": "Who is travelling?",
+    "dialogDescription": "Price is per person and re-checked when you submit. Seats are held as soon as the booking is made.",
+    "travellerCounts": "Travellers by occupancy",
+    "noRateForOccupancy": "No rate",
+    "totalTravellers": "Travellers: {count}",
+    "createDay": "Add a day",
+    "createRate": "New rate",
+    "createDeparture": "New departure",
+    "returnDateNote": "The return date is the tour's own length, so it is calculated rather than typed.",
+    "capacityNote": "Unlike transfers, a tour has real capacity: a coach and a guide hold a fixed number of people, so seats are held at booking and released on cancellation.",
+    "deleteConfirmTitle": "Delete this?",
+    "deleteConfirmBody": "Bookings already made keep their own copy of these details.",
+    "departureFull": "Full",
+    "departureClosed": "Closed",
+    "errors": {
+      "saveFailed": "We could not save that.",
+      "invalidInput": "Please check the fields and try again.",
+      "duplicate": "That code is already in use.",
+      "overlap": "Another rate already covers part of that period for this occupancy.",
+      "duplicateDeparture": "This package already has a departure on that date.",
+      "duplicateDay": "That day number is already used.",
+      "unavailable": "That departure is no longer available. Search again.",
+      "alreadyLeft": "That departure has already left.",
+      "noTravellers": "Choose at least one traveller.",
+      "noRate": "This departure has no rate for one of the occupancies you chose.",
+      "creditExceeded": "This booking would take you past your credit limit.",
+      "createFailed": "We could not create this booking."
+    },
+    "tourLabel": "Tour"
+  },
+  "crm": {
+    "navLabel": "CRM",
+    "title": "Prospects",
+    "description": "Agencies being courted, the contact behind each one, and what happens next.",
+    "create": "New lead",
+    "empty": "No leads yet.",
+    "emptyStage": "Nothing here.",
+    "saved": "Saved.",
+    "deleted": "Deleted.",
+    "converted": "Lead won.",
+    "activityLogged": "Contact logged.",
+    "taskSaved": "Task saved.",
+    "pipeline": "Pipeline",
+    "timeline": "Contact history",
+    "tasks": "Follow-up",
+    "openTasks": "Open follow-up",
+    "overdue": "Overdue",
+    "dueToday": "Due today",
+    "noTasks": "Nothing to follow up.",
+    "noActivities": "No contact logged yet.",
+    "leadCount": "Leads: {count}",
+    "stage": {
+      "new": "New",
+      "contacted": "Contacted",
+      "qualified": "Qualified",
+      "proposal": "Proposal sent",
+      "won": "Won",
+      "lost": "Lost"
+    },
+    "source": {
+      "referral": "Referral",
+      "website": "Website",
+      "exhibition": "Exhibition",
+      "cold_call": "Cold call",
+      "social": "Social media",
+      "existing_client": "Existing client",
+      "other": "Other"
+    },
+    "kind": {
+      "call": "Call",
+      "email": "Email",
+      "meeting": "Meeting",
+      "whatsapp": "WhatsApp",
+      "note": "Note"
+    },
+    "taskStatus": {
+      "open": "Open",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "fields": {
+      "companyName": "Company",
+      "contactName": "Contact person",
+      "email": "Email",
+      "phone": "Phone",
+      "country": "Country",
+      "city": "City",
+      "sourceLabel": "Source",
+      "stageLabel": "Stage",
+      "owner": "Owner",
+      "notes": "Notes",
+      "lostReason": "Why it was lost",
+      "reference": "Reference",
+      "subject": "Subject",
+      "body": "What was said",
+      "kindLabel": "Kind",
+      "occurredAt": "When",
+      "title": "Task",
+      "dueOn": "Due",
+      "assignedTo": "Assigned to",
+      "agency": "Agency",
+      "unassigned": "Unassigned"
+    },
+    "logActivity": "Log contact",
+    "addTask": "Add follow-up",
+    "convert": "Mark as won",
+    "convertTitle": "Which agency did they become?",
+    "convertBody": "The CRM never creates an agency. Pick the one that registered and was approved through the normal route — this only links the two.",
+    "convertNoAgencies": "No approved agency is available to link. The prospect has to register and be approved first.",
+    "markDone": "Done",
+    "reopen": "Reopen",
+    "wonAs": "Became {agency}",
+    "wonAgencyGone": "The linked agency has since been removed.",
+    "deleteConfirmTitle": "Delete this?",
+    "deleteConfirmBody": "The contact history and follow-up on it go too.",
+    "internalOnly": "Everything here is internal. Agencies never see any of it, including what is written about them.",
+    "errors": {
+      "saveFailed": "We could not save that.",
+      "invalidInput": "Please check the fields and try again.",
+      "wonNeedsAgency": "A won lead has to name the agency it became.",
+      "lostNeedsReason": "A lost lead has to say why.",
+      "alreadyWon": "That lead has already been won.",
+      "agencyTaken": "Another lead is already linked to that agency.",
+      "agencyGone": "That agency no longer exists.",
+      "notFound": "That lead no longer exists."
     }
   }
 }

@@ -51,6 +51,7 @@ export async function createRoleAction(formData: FormData): Promise<Result> {
 
   const parsed = createRoleSchema.safeParse({
     key: formData.get("key"),
+    scope: formData.get("scope") || "admin",
     nameAr: formData.get("nameAr"),
     nameEn: formData.get("nameEn"),
     descriptionAr: formData.get("descriptionAr") ?? "",
@@ -63,8 +64,7 @@ export async function createRoleAction(formData: FormData): Promise<Result> {
 
   const { error } = await supabase.from("roles").insert({
     key: d.key,
-    // Custom roles are back-office only in this phase (CLAUDE.md §15, 1.7).
-    scope: "admin",
+    scope: d.scope,
     name_ar: d.nameAr,
     name_en: d.nameEn,
     description_ar: d.descriptionAr || null,

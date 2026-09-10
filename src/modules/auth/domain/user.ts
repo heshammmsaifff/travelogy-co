@@ -6,7 +6,7 @@
  */
 
 export type UserStatus = "pending" | "active" | "suspended" | "rejected";
-export type RoleScope = "admin" | "agent";
+export type RoleScope = "admin" | "agent" | "driver";
 
 /** The four protected system roles (CLAUDE.md §7). Custom roles are data. */
 export const SYSTEM_ROLE_KEYS = ["super_admin", "staff", "agent_owner", "agent_user"] as const;
@@ -66,10 +66,19 @@ export function can(user: AuthenticatedUser | null, permission: string): boolean
   return user.permissions.includes(permission);
 }
 
-/** Where a user belongs once signed in, given their role and account state. */
+/**
+ * Where a user belongs once signed in, given their role and account state.
+ *
+ * Every layout that turns someone away must send them HERE rather than to the
+ * other side by name. With two scopes "not admin" meant "agent"; with three it
+ * does not, and two layouts each assuming the other's audience is how a driver
+ * ends up bouncing between /admin and /agent forever.
+ */
 export function landingPathFor(user: AuthenticatedUser): string {
   if (user.status !== "active") return "/pending";
-  return user.role.scope === "admin" ? "/admin" : "/agent";
+  if (user.role.scope === "admin") return "/admin";
+  if (user.role.scope === "driver") return "/driver";
+  return "/agent";
 }
 
 // ---------------------------------------------------------------- errors

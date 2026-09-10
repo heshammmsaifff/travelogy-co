@@ -18,63 +18,83 @@
    ========================================================================== */
 
 @theme {
-  /* --- Neutral ramp (cool slate) ------------------------------------------ */
-  --color-neutral-50: oklch(0.985 0.002 250);
-  --color-neutral-100: oklch(0.968 0.004 250);
-  --color-neutral-200: oklch(0.925 0.006 250);
-  --color-neutral-300: oklch(0.872 0.009 250);
-  --color-neutral-400: oklch(0.715 0.012 250);
-  --color-neutral-500: oklch(0.585 0.014 250);
-  --color-neutral-600: oklch(0.478 0.015 250);
-  --color-neutral-700: oklch(0.395 0.016 252);
-  --color-neutral-800: oklch(0.285 0.016 254);
-  --color-neutral-900: oklch(0.215 0.015 256);
-  --color-neutral-950: oklch(0.155 0.014 258);
+  /* --- Travelogy Brand Neutral ramp (Charcoal & Warm Cream) ---------------- */
+  --color-neutral-50: #FBF9F5;
+  --color-neutral-100: #F6F2E9; /* Warm Cream */
+  --color-neutral-200: #EDE7DC;
+  --color-neutral-300: #E0D9CB;
+  --color-neutral-400: #C5BCAE;
+  --color-neutral-500: #9E9587;
+  --color-neutral-600: #7B8C94;
+  --color-neutral-700: #52636B;
+  --color-neutral-800: #364850;
+  --color-neutral-900: #24333A; /* Charcoal */
+  --color-neutral-950: #172227;
 
-  /* --- Brand ramp (the single accent) ------------------------------------- */
-  --color-brand-50: oklch(0.972 0.014 252);
-  --color-brand-100: oklch(0.936 0.032 252);
-  --color-brand-200: oklch(0.878 0.058 252);
-  --color-brand-300: oklch(0.796 0.094 253);
-  --color-brand-400: oklch(0.688 0.135 254);
-  --color-brand-500: oklch(0.596 0.166 255);
-  --color-brand-600: oklch(0.522 0.176 257);
-  --color-brand-700: oklch(0.452 0.158 258);
-  --color-brand-800: oklch(0.392 0.128 259);
-  --color-brand-900: oklch(0.342 0.098 260);
+  /* --- Brand ramp (Deep Travel Navy & Travel Teal) ------------------------- */
+  --color-brand-50: #E8EFF1;
+  --color-brand-100: #C7D9DD;
+  --color-brand-200: #9FBEC5;
+  --color-brand-300: #739FA9;
+  --color-brand-400: #4B7D89;
+  --color-brand-500: #315F5B; /* Travel Teal */
+  --color-brand-600: #063B4A; /* Deep Travel Navy */
+  --color-brand-700: #042D39;
+  --color-brand-800: #03212A;
+  --color-brand-900: #02151B;
+
+  /* --- Luxury Gold ramp (Premium Gold) ------------------------------------- */
+  --color-gold-50: #FAF6ED;
+  --color-gold-100: #F3E9CE;
+  --color-gold-200: #EBD9AE;
+  --color-gold-300: #E2C98D;
+  --color-gold-400: #DCBC6D;
+  --color-gold-500: #D8AE4A; /* Premium Gold */
+  --color-gold-600: #C39934;
+  --color-gold-700: #A17A24;
+  --color-gold-800: #7F5D17;
+  --color-gold-900: #5D420E;
+
+  /* --- Specific Brand Tokens ---------------------------------------------- */
+  --color-navy: #063B4A;
+  --color-navy-dark: #042D39;
+  --color-teal: #315F5B;
+  --color-teal-dark: #254B48;
+  --color-gold: #D8AE4A;
+  --color-cream: #F6F2E9;
+  --color-charcoal: #24333A;
 
   /* --- Status ramps -------------------------------------------------------- */
-  --color-success-50: oklch(0.972 0.021 155);
-  --color-success-100: oklch(0.936 0.048 155);
-  --color-success-600: oklch(0.545 0.135 155);
-  --color-success-700: oklch(0.468 0.116 156);
+  --color-success-50: #F0FDF4;
+  --color-success-100: #DCFCE7;
+  --color-success-600: #16A34A;
+  --color-success-700: #15803D;
 
-  --color-warning-50: oklch(0.976 0.028 85);
-  --color-warning-100: oklch(0.944 0.066 85);
-  --color-warning-600: oklch(0.672 0.152 65);
-  --color-warning-700: oklch(0.545 0.128 60);
+  --color-warning-50: #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-600: #D97706;
+  --color-warning-700: #B45309;
 
-  --color-danger-50: oklch(0.971 0.018 25);
-  --color-danger-100: oklch(0.936 0.042 25);
-  --color-danger-600: oklch(0.552 0.198 25);
-  --color-danger-700: oklch(0.472 0.172 26);
+  --color-danger-50: #FEF2F2;
+  --color-danger-100: #FEE2E2;
+  --color-danger-600: #DC2626;
+  --color-danger-700: #B91C1C;
 
   /* --- Semantic surfaces & ink -------------------------------------------- */
-  --color-canvas: var(--color-neutral-100);
-  --color-surface: oklch(1 0 0);
-  --color-surface-sunken: var(--color-neutral-50);
-  --color-surface-hover: var(--color-neutral-100);
+  --color-canvas: #F6F2E9; /* Warm Cream */
+  --color-surface: #FFFFFF; /* Pure White */
+  --color-surface-sunken: #EDE7DC;
+  --color-surface-hover: #F2ECE1;
 
-  --color-border: var(--color-neutral-200);
-  --color-border-strong: var(--color-neutral-300);
+  --color-border: #E0D9CB;
+  --color-border-strong: #C5BCAE;
 
-  /* ink-* all clear 4.5:1 on --color-surface (design skill: contrast baseline) */
-  --color-ink: var(--color-neutral-900);
-  --color-ink-muted: var(--color-neutral-600);
-  --color-ink-subtle: var(--color-neutral-500);
-  --color-ink-inverse: oklch(1 0 0);
+  --color-ink: #24333A; /* Charcoal */
+  --color-ink-muted: #52636B;
+  --color-ink-subtle: #7B8C94;
+  --color-ink-inverse: #FFFFFF;
 
-  --color-focus: var(--color-brand-500);
+  --color-focus: #D8AE4A; /* Premium Gold Ring */
 
   /* --- Typography ---------------------------------------------------------- */
   /* One family across both locales: IBM Plex Sans Arabic ships matched Arabic
@@ -143,8 +163,31 @@
 }
 
 /* ============================================================================
-   Base layer
+   Shadcn UI & Base Tokens
    ========================================================================== */
+
+:root {
+  --background: #F6F2E9; /* Warm Cream */
+  --foreground: #24333A; /* Charcoal */
+  --card: #FFFFFF; /* Pure White */
+  --card-foreground: #24333A;
+  --popover: #FFFFFF;
+  --popover-foreground: #24333A;
+  --primary: #063B4A; /* Deep Travel Navy */
+  --primary-foreground: #FFFFFF;
+  --secondary: #315F5B; /* Travel Teal */
+  --secondary-foreground: #FFFFFF;
+  --muted: #EDE7DC;
+  --muted-foreground: #52636B;
+  --accent: #D8AE4A; /* Premium Gold */
+  --accent-foreground: #063B4A;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #E0D9CB;
+  --input: #E0D9CB;
+  --ring: #D8AE4A; /* Premium Gold Focus Ring */
+  --radius: 0.5rem;
+}
 
 @layer base {
   * {
@@ -267,5 +310,288 @@
   .swal2-styled:focus-visible {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Phone input — react-international-phone overrides
+   ---------------------------------------------------------------------------
+   The library ships its own CSS with generic colours. These overrides map every
+   surface to our design tokens so the phone field looks identical to <Input />.
+--------------------------------------------------------------------------- */
+
+.phone-input-custom.react-international-phone-input-container {
+  --react-international-phone-height: 2.25rem; /* h-9 */
+  --react-international-phone-border-radius: var(--radius-control);
+  position: relative;
+  display: flex !important;
+  align-items: stretch;
+  width: 100%;
+  height: 2.25rem; /* Exactly 36px matching <Input /> */
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-xs, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  transition: border-color 150ms var(--ease-out-soft),
+              box-shadow 150ms var(--ease-out-soft);
+}
+
+/* Hover on the entire unified field */
+.phone-input-custom.react-international-phone-input-container:hover {
+  border-color: var(--color-neutral-400, #a1a1aa);
+}
+
+/* Focus ring on the entire unified field when input or button is active */
+.phone-input-custom.react-international-phone-input-container:focus-within {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 0;
+  border-color: var(--color-focus);
+}
+
+/* Error state on the entire unified field */
+.phone-input-custom--error.react-international-phone-input-container {
+  border-color: var(--color-danger-600);
+}
+.phone-input-custom--error.react-international-phone-input-container:focus-within {
+  outline-color: var(--color-danger-600);
+}
+
+/* The Country Selector Wrapper */
+.phone-input-custom .react-international-phone-country-selector {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+/* Country selector box (مربع علم الدولة): sleek integrated prefix badge */
+.phone-input-custom .react-international-phone-country-selector-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  min-width: 3.5rem;
+  padding: 0 12px !important;
+  margin: 0 !important;
+  border: none !important;
+  border-right: 1px solid var(--color-border) !important;
+  border-top-left-radius: calc(var(--radius-control) - 1px) !important;
+  border-bottom-left-radius: calc(var(--radius-control) - 1px) !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  background-color: var(--color-surface-sunken, #f8fafc) !important;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 150ms var(--ease-out-soft),
+              border-color 150ms var(--ease-out-soft);
+}
+
+.phone-input-custom .react-international-phone-country-selector-button:hover {
+  background-color: var(--color-surface-hover, #f1f5f9) !important;
+}
+
+.phone-input-custom .react-international-phone-country-selector-button:focus-visible {
+  outline: none !important;
+  background-color: var(--color-surface-hover, #f1f5f9) !important;
+}
+
+.phone-input-custom .react-international-phone-country-selector-button--active {
+  background-color: var(--color-surface-hover, #f1f5f9) !important;
+}
+
+/* Flex layout inside the button */
+.phone-input-custom .react-international-phone-country-selector-button__button-content {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  height: 100%;
+}
+
+/* Flag presentation: crisp 3:2 ratio, rounded corners, subtle realistic border */
+.phone-input-custom .react-international-phone-country-selector-button__flag-emoji {
+  width: 21px !important;
+  height: 14px !important;
+  object-fit: cover !important;
+  border-radius: 2.5px !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+/* Modern crisp chevron indicator */
+.phone-input-custom .react-international-phone-country-selector-button__dropdown-arrow {
+  width: 5px;
+  height: 5px;
+  border: none !important;
+  border-right: 1.5px solid var(--color-ink-muted, #64748b) !important;
+  border-bottom: 1.5px solid var(--color-ink-muted, #64748b) !important;
+  transform: rotate(45deg);
+  margin: 0 !important;
+  transition: transform 180ms ease, border-color 150ms ease;
+  flex-shrink: 0;
+}
+
+.phone-input-custom .react-international-phone-country-selector-button:hover .react-international-phone-country-selector-button__dropdown-arrow {
+  border-color: var(--color-ink, #0f172a) !important;
+}
+
+.phone-input-custom .react-international-phone-country-selector-button__dropdown-arrow--active {
+  transform: rotate(-135deg) !important;
+  border-color: var(--color-ink, #0f172a) !important;
+}
+
+/* The phone text input itself: completely borderless, filling the remaining space */
+.phone-input-custom .react-international-phone-input {
+  flex: 1 !important;
+  height: 100% !important;
+  border: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  border-top-right-radius: calc(var(--radius-control) - 1px) !important;
+  border-bottom-right-radius: calc(var(--radius-control) - 1px) !important;
+  background: transparent !important;
+  padding: 0 12px !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-sm) !important;
+  color: var(--color-ink) !important;
+  box-shadow: none !important;
+}
+
+.phone-input-custom .react-international-phone-input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.phone-input-custom .react-international-phone-input::placeholder {
+  color: var(--color-ink-subtle);
+}
+
+.phone-input-custom .react-international-phone-input:disabled {
+  cursor: not-allowed;
+  color: var(--color-ink-subtle);
+}
+
+/* Dropdown: elegant floating card with depth and smooth scrollbar */
+.phone-input-custom .react-international-phone-country-selector-dropdown {
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-overlay, 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1));
+  width: 310px;
+  max-height: 280px;
+  padding: 4px;
+  z-index: 50;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+  margin-top: 4px;
+}
+
+.phone-input-custom .react-international-phone-country-selector-dropdown::-webkit-scrollbar {
+  width: 5px;
+}
+
+.phone-input-custom .react-international-phone-country-selector-dropdown::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-strong);
+  border-radius: 3px;
+}
+
+/* Dropdown items */
+.phone-input-custom .react-international-phone-country-selector-dropdown__list-item {
+  padding: 7px 10px;
+  border-radius: calc(var(--radius-control) - 2px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.phone-input-custom .react-international-phone-country-selector-dropdown__list-item:hover,
+.phone-input-custom .react-international-phone-country-selector-dropdown__list-item--focused {
+  background-color: var(--color-surface-hover);
+}
+
+.phone-input-custom .react-international-phone-country-selector-dropdown__list-item--selected {
+  background-color: var(--color-brand-50, #f0fdf4);
+  color: var(--color-brand-700, #15803d);
+  font-weight: 600;
+}
+
+.phone-input-custom .react-international-phone-country-selector-dropdown__list-item-flag-emoji {
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  margin-right: 0;
+  flex-shrink: 0;
+}
+
+.phone-input-custom .react-international-phone-country-selector-dropdown__list-item-country-name {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: var(--color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phone-input-custom .react-international-phone-country-selector-dropdown__list-item-dial-code {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  background: var(--color-surface-sunken, #f1f5f9);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+
+.phone-input-custom .react-international-phone-country-selector-dropdown__preferred-list-divider {
+  margin: 6px 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Transition on borders. */
+.phone-input-custom .react-international-phone-country-selector-button,
+.phone-input-custom .react-international-phone-input {
+  transition: border-color 150ms var(--ease-out-soft);
+}
+
+/* ---------------------------------------------------------------------------
+   Print — vouchers and invoices (CLAUDE.md §13, Phase 5c)
+   ---------------------------------------------------------------------------
+   These documents are printed by the reader's own browser rather than rendered
+   to a PDF on the server. That is a deliberate choice, and the reason is here
+   rather than only in the decision log: the browser applies the Unicode
+   bidirectional algorithm and Arabic shaping correctly, which the PDF library
+   evaluated for this phase does not (§15). The browser also costs us nothing
+   per document, where a headless Chromium would cost ~300MB and half a
+   gigabyte of memory per render (§11).
+--------------------------------------------------------------------------- */
+
+@media print {
+  /* Anything that is navigation, not content. */
+  [data-print="hide"] {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff;
+  }
+
+  /* Ink is expensive and grey-on-white prints badly on a cheap printer. */
+  body {
+    color: #000;
+  }
+
+  /* A document should not be broken across a page in the middle of a row. */
+  [data-print="keep"] {
+    break-inside: avoid;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm;
   }
 }

@@ -10,11 +10,15 @@ import { signOutAction } from "./actions";
 export function SignOutButton({
   locale,
   variant = "secondary",
+  size = "md",
   className,
+  children,
 }: {
   locale: Locale;
   variant?: "secondary" | "ghost";
+  size?: "sm" | "md" | "lg" | "icon";
   className?: string;
+  children?: React.ReactNode;
 }) {
   const t = useTranslations("auth");
   const [pending, startTransition] = useTransition();
@@ -22,12 +26,13 @@ export function SignOutButton({
   return (
     <Button
       variant={variant}
+      size={size}
       className={className}
       loading={pending}
       onClick={() => startTransition(() => signOutAction(locale))}
     >
       {!pending ? <LuLogOut aria-hidden /> : null}
-      {t("signOut")}
+      {children ?? t("signOut")}
     </Button>
   );
 }

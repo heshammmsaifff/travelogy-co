@@ -9,6 +9,8 @@ import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Modal } from "@/shared/ui/modal";
+import { NativeSelect } from "@/shared/ui/select";
+import { Textarea as ShadcnTextarea } from "@/shared/ui/textarea";
 import type { Result } from "./hotel-actions";
 
 /**
@@ -27,7 +29,7 @@ export function useResultToast() {
   };
 }
 
-/** Labelled <select>, matching the Input primitive's shape and focus ring. */
+/** Labelled NativeSelect, matching Shadcn design tokens and gold focus ring. */
 export function Select({
   name,
   label,
@@ -45,38 +47,17 @@ export function Select({
   disabled?: boolean;
   children: ReactNode;
 }) {
-  const id = `sel-${name}`;
-  const hintId = `${id}-hint`;
-
   return (
-    <div className="flex w-full flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-ink">
-        {label}
-        {required ? (
-          <span className="ms-0.5 text-danger-600" aria-hidden>
-            *
-          </span>
-        ) : null}
-      </label>
-      <select
-        id={id}
-        name={name}
-        defaultValue={defaultValue}
-        required={required}
-        disabled={disabled}
-        // Announced with the field rather than merely displayed beside it,
-        // matching how the Input primitive wires its hint.
-        aria-describedby={hint ? hintId : undefined}
-        className="h-9 w-full cursor-pointer rounded-control border border-border-strong bg-surface px-3 text-sm text-ink transition-colors hover:border-neutral-400 focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:bg-surface-sunken"
-      >
-        {children}
-      </select>
-      {hint ? (
-        <p id={hintId} className="text-xs text-ink-muted">
-          {hint}
-        </p>
-      ) : null}
-    </div>
+    <NativeSelect
+      name={name}
+      label={label}
+      hint={hint}
+      defaultValue={defaultValue}
+      required={required}
+      disabled={disabled}
+    >
+      {children}
+    </NativeSelect>
   );
 }
 
@@ -90,12 +71,12 @@ export function Checkbox({
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2.5 text-sm text-ink">
+    <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-ink select-none">
       <input
         type="checkbox"
         name={name}
         defaultChecked={defaultChecked}
-        className="size-4 shrink-0 cursor-pointer rounded-[4px] border-border-strong accent-brand-600"
+        className="size-4.5 shrink-0 cursor-pointer rounded-sm border-border-strong accent-brand-600 focus-visible:ring-2 focus-visible:ring-gold-500"
       />
       {label}
     </label>
@@ -115,21 +96,14 @@ export function Textarea({
   rows?: number;
   dir?: "ltr" | "rtl";
 }) {
-  const id = `ta-${name}`;
   return (
-    <div className="flex w-full flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-ink">
-        {label}
-      </label>
-      <textarea
-        id={id}
-        name={name}
-        rows={rows}
-        dir={dir}
-        defaultValue={defaultValue}
-        className="w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-sm text-ink transition-colors hover:border-neutral-400 focus-visible:outline-2 focus-visible:outline-focus"
-      />
-    </div>
+    <ShadcnTextarea
+      name={name}
+      label={label}
+      defaultValue={defaultValue}
+      rows={rows}
+      dir={dir}
+    />
   );
 }
 
