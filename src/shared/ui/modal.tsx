@@ -57,13 +57,13 @@ export function Modal({
         />
         <Dialog.Content
           className={cn(
-            "fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2",
+            "fixed top-1/2 left-1/2 z-50 flex max-h-[85vh] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col",
             "rounded-modal border border-border bg-surface shadow-overlay",
             "focus:outline-none motion-safe:animate-modal-in",
             SIZES[size],
           )}
         >
-          <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-5 py-4">
             <div className="min-w-0 space-y-1">
               <Dialog.Title className="text-base font-semibold text-ink">{title}</Dialog.Title>
               {description ? (
@@ -84,10 +84,10 @@ export function Modal({
             </Dialog.Close>
           </div>
 
-          <div className="px-5 py-4">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 overscroll-contain">{children}</div>
 
           {footer ? (
-            <div className="flex items-center justify-end gap-2 border-t border-border bg-surface-sunken px-5 py-3">
+            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border bg-surface-sunken px-5 py-3">
               {footer}
             </div>
           ) : null}

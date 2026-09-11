@@ -25,6 +25,7 @@
     "previous": "Previous",
     "next": "Next",
     "edit": "Edit",
+    "view": "View",
     "searchCountry": "Search for a country",
     "showPassword": "Show password",
     "hidePassword": "Hide password"
@@ -306,6 +307,10 @@
         "profile": {
           "title": "Company profile",
           "body": "Keep the details that appear on your documents up to date."
+        },
+        "developer": {
+          "title": "Developer Portal & API",
+          "body": "API keys and documentation for B2B REST system-to-system distribution."
         }
       }
     },
@@ -322,7 +327,8 @@
       "team": "Team",
       "profile": "Company",
       "transfers": "Transfers",
-      "packages": "Packages"
+      "packages": "Packages",
+      "developer": "Developer & API"
     },
     "team": {
       "title": "Team management",
@@ -1096,7 +1102,10 @@
       "coverExists": "A cover image already exists.",
       "codeTaken": "That code is already in use.",
       "invalidLocationUrl": "The location link must start with http:// or https://"
-    }
+    },
+    "uploadRates": "Upload Rates (Excel)",
+    "ratesUploadTitle": "Static Rates Upload",
+    "ratesUploadDescription": "Bulk import and update hotel room contract rates from Excel or CSV"
   },
   "settings": {
     "title": "Settings",
@@ -1168,7 +1177,12 @@
       "invalidCredential": "That credential input is not valid.",
       "saveFailed": "Could not save.",
       "noAdapter": "No adapter is implemented for this supplier."
-    }
+    },
+    "preferencesTitle": "Supplier Preferences",
+    "preferencesDescription": "Select which external suppliers your agency prefers to search and book from.",
+    "preferencesSaved": "Supplier preference saved successfully.",
+    "globallyDisabled": "Globally Disabled",
+    "noSuppliersAvailable": "No external suppliers are currently enabled."
   },
   "markup": {
     "title": "Markup rules",
@@ -1247,7 +1261,9 @@
     "errors": {
       "searchFailed": "The search could not be completed. Please try again.",
       "partialResults": "Partial results: {count} supplier(s) did not respond."
-    }
+    },
+    "multiSupplierCount": "{count} suppliers",
+    "bestPriceFrom": "Best rate from {supplier}"
   },
   "site": {
     "nav": {
@@ -1419,7 +1435,7 @@
       "creditLimit": "Credit limit",
       "currency": "Currency"
     },
-    "locked": "Set by Last Line Travel. Contact us to change it.",
+    "locked": "Set by Travelogy. Contact us to change it.",
     "save": "Save changes",
     "saved": "Company profile updated.",
     "errors": {
@@ -2239,6 +2255,101 @@
       "agencyTaken": "Another lead is already linked to that agency.",
       "agencyGone": "That agency no longer exists.",
       "notFound": "That lead no longer exists."
+    }
+  },
+  "staticRates": {
+    "title": "Static Contract Rates Upload",
+    "description": "Bulk import and update hotel room contract rates and allotments from Excel or CSV with automated validation and code mapping.",
+    "uploadCardTitle": "Contract Rates File",
+    "uploadCardDescription": "Select an Excel (.xlsx, .xls) or CSV file containing room contract rates and allotments.",
+    "downloadTemplate": "Download Template (Excel / CSV)",
+    "dragOrSelectFile": "Drag and drop your file here, or browse from your computer",
+    "supportedFormats": "Supports .xlsx, .xls, and .csv (Max 10 MB)",
+    "selectFileButton": "Select File",
+    "parseSuccessTitle": "File parsed successfully",
+    "parseSuccessDesc": "Parsed {total} rows ({valid} valid rows ready for import)",
+    "importCompleteTitle": "Import completed successfully",
+    "importCompleteDesc": "Successfully imported and updated {count} contract rates in the database.",
+    "previewTitle": "Data Preview & Validation",
+    "previewStats": "Total: {total} rows | Valid: {valid} | Errors: {errors}",
+    "confirmImportButton": "Confirm & Import {count} Rates",
+    "cols": {
+      "row": "#",
+      "status": "Status",
+      "invalid": "Invalid",
+      "hotelCode": "Hotel Code",
+      "roomCode": "Room Code",
+      "planCode": "Rate Plan",
+      "dates": "Period",
+      "rate": "Net Rate",
+      "allotment": "Allotment",
+      "notes": "Notes & Errors"
+    }
+  },
+  "b2bApi": {
+    "developerPageTitle": "Developer Portal & B2B REST API",
+    "developerPageDescription": "Manage API keys for programmatic system-to-system distribution (XML Out) and browse live OpenAPI 3.1 endpoints.",
+    "keysCardTitle": "B2B API Keys",
+    "keysCardDescription": "Authenticate your external systems, OTAs, and tour engines to search and book programmatically.",
+    "generateKeyButton": "Generate New API Key",
+    "noKeysTitle": "No API Keys Generated Yet",
+    "noKeysDescription": "Generate your first API key to start connecting your systems to Travelogy.",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "rateLimitLabel": "{limit} req / min",
+    "createdAtLabel": "Created on {date}",
+    "lastUsedLabel": "Last used {date}",
+    "neverUsed": "Never used",
+    "ipWhitelistLabel": "Allowed IPs",
+    "toggleStatus": "Toggle Key Status",
+    "keyCreatedTitle": "API Key Generated Successfully",
+    "copiedToClipboard": "Copied to clipboard",
+    "statusUpdated": "Key status updated",
+    "confirmDeleteTitle": "Revoke API Key?",
+    "confirmDeleteBody": "Are you sure you want to revoke \"{name}\"? Connected systems will immediately lose access.",
+    "keyDeleted": "API Key revoked successfully",
+    "modalCreateTitle": "Generate New API Key",
+    "modalCreateDesc": "Enter a descriptive name for the integration and optional security IP restrictions.",
+    "fields": {
+      "keyName": "Key Name (e.g., Production Booking Engine, Staging ERP)",
+      "keyNamePlaceholder": "e.g. Production Booking Engine",
+      "allowedIps": "Allowed IP Addresses (Optional)",
+      "allowedIpsPlaceholder": "192.168.1.1, 10.0.0.1",
+      "allowedIpsHint": "Comma-separated IPs or CIDRs. Leave blank to allow requests from any IP address."
+    },
+    "createKeySubmit": "Generate Key",
+    "modalRevealTitle": "Save Your Secret API Key",
+    "modalRevealDesc": "Please copy and securely store this key now. You will never be able to view it again!",
+    "secretWarningTitle": "Important Security Notice",
+    "secretWarningBody": "This API key has permission to create reservations against your agency credit line. Never expose it in client-side code.",
+    "yourApiKeyLabel": "Your Secret API Key",
+    "copied": "Copied!",
+    "copy": "Copy",
+    "closeModalDone": "I have stored it safely, close",
+    "authGuideTitle": "Authentication",
+    "authGuideBody": "Send your secret key in the X-API-Key or Authorization: Bearer header with each HTTP request.",
+    "rateLimitsTitle": "Rate Limits",
+    "rateLimitsBody": "Requests are capped at per-minute limits per key to ensure fair usage and system stability.",
+    "specTitle": "OpenAPI 3.1 Specification",
+    "specBody": "Fully compatible with OpenAPI 3.1 and Swagger standards for rapid integration and code generation.",
+    "viewOpenApiJson": "View openapi.json",
+    "endpointsReferenceTitle": "REST Endpoints Reference",
+    "endpointsReferenceDesc": "Browse all available B2B endpoints with copyable cURL examples for instant testing.",
+    "docs": {
+      "searchSummary": "Search Available Hotels & Rates",
+      "searchDesc": "Query aggregated live availability across internal stock and external Bedbanks with agency markup.",
+      "hotelDetailSummary": "Get Hotel Content & Details",
+      "hotelDetailDesc": "Fetch property description, images, room types, and check-in/out policies.",
+      "createBookingSummary": "Create Programmatic Booking",
+      "createBookingDesc": "Instantly reserve rooms with automated credit headroom checks and inventory locking.",
+      "getBookingSummary": "Get Booking Details & Status",
+      "getBookingDesc": "Retrieve booking status, voucher links, and guest details by ID or reference code.",
+      "cancelBookingSummary": "Cancel Booking",
+      "cancelBookingDesc": "Cancel reservation according to policy, restoring room inventory and releasing credit obligation.",
+      "balanceSummary": "Get Agency Credit & Balance",
+      "balanceDesc": "Check credit facility limit, current balance, and available booking headroom."
     }
   }
 }

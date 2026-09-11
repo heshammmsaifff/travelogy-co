@@ -69,6 +69,15 @@ export type SupplierOffer = {
 
   isRefundable: boolean;
   roomsAvailable: number;
+  /** Which supplier provided this offer (defaults to hotel result supplierKey). */
+  supplierKey?: string;
+};
+
+export type SupplierComparison = {
+  supplierKey: string;
+  minPrice: number;
+  currencyCode: string;
+  offerCount: number;
 };
 
 export type SupplierHotelResult = {
@@ -87,6 +96,12 @@ export type SupplierHotelResult = {
   coverUrl: string | null;
 
   offers: SupplierOffer[];
+
+  /** Multi-supplier deduplication & rate comparison (Hotels B2B Hub §6.2) */
+  canonicalHotelId?: string | null;
+  isAggregated?: boolean;
+  supplierComparison?: SupplierComparison[];
+  lowestSupplierKey?: string;
 };
 
 export type ConnectionTestResult = {

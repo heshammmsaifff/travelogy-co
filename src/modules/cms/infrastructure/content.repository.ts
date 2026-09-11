@@ -234,8 +234,8 @@ export async function getHomepageContent(locale: Locale): Promise<PublicHomepage
   if (error || !data) return null;
 
   const ar = locale === "ar";
-  const rawFeatures = Array.isArray(data.features) ? data.features : [];
-  const rawSteps = Array.isArray(data.how_steps) ? data.how_steps : [];
+  const rawFeatures = (Array.isArray(data.features) ? data.features : []) as Record<string, unknown>[];
+  const rawSteps = (Array.isArray(data.how_steps) ? data.how_steps : []) as Record<string, unknown>[];
 
   return {
     hero: {
@@ -246,18 +246,18 @@ export async function getHomepageContent(locale: Locale): Promise<PublicHomepage
     features: {
       title: ar ? data.features_title_ar : data.features_title_en,
       description: ar ? data.features_subtitle_ar : data.features_subtitle_en,
-      items: rawFeatures.map((f: any) => ({
-        key: f.key,
-        title: ar ? f.title_ar : f.title_en,
-        body: ar ? f.body_ar : f.body_en,
+      items: rawFeatures.map((f) => ({
+        key: String(f.key ?? ""),
+        title: ar ? String(f.title_ar ?? "") : String(f.title_en ?? ""),
+        body: ar ? String(f.body_ar ?? "") : String(f.body_en ?? ""),
       })),
     },
     how: {
       title: ar ? data.how_title_ar : data.how_title_en,
-      steps: rawSteps.map((s: any) => ({
-        step: s.step,
-        title: ar ? s.title_ar : s.title_en,
-        body: ar ? s.body_ar : s.body_en,
+      steps: rawSteps.map((s) => ({
+        step: String(s.step ?? ""),
+        title: ar ? String(s.title_ar ?? "") : String(s.title_en ?? ""),
+        body: ar ? String(s.body_ar ?? "") : String(s.body_en ?? ""),
       })),
     },
     cta: {
@@ -317,8 +317,8 @@ export async function getAdminHomepageContent(): Promise<AdminHomepageContent | 
 
   if (error || !data) return null;
 
-  const rawFeatures = Array.isArray(data.features) ? data.features : [];
-  const rawSteps = Array.isArray(data.how_steps) ? data.how_steps : [];
+  const rawFeatures = (Array.isArray(data.features) ? data.features : []) as Record<string, unknown>[];
+  const rawSteps = (Array.isArray(data.how_steps) ? data.how_steps : []) as Record<string, unknown>[];
 
   return {
     heroEyebrowAr: data.hero_eyebrow_ar,
@@ -332,22 +332,22 @@ export async function getAdminHomepageContent(): Promise<AdminHomepageContent | 
     featuresTitleEn: data.features_title_en,
     featuresSubtitleAr: data.features_subtitle_ar,
     featuresSubtitleEn: data.features_subtitle_en,
-    features: rawFeatures.map((f: any) => ({
-      key: f.key,
-      titleAr: f.title_ar ?? f.titleAr ?? "",
-      titleEn: f.title_en ?? f.titleEn ?? "",
-      bodyAr: f.body_ar ?? f.bodyAr ?? "",
-      bodyEn: f.body_en ?? f.bodyEn ?? "",
+    features: rawFeatures.map((f) => ({
+      key: String(f.key ?? ""),
+      titleAr: String(f.title_ar ?? f.titleAr ?? ""),
+      titleEn: String(f.title_en ?? f.titleEn ?? ""),
+      bodyAr: String(f.body_ar ?? f.bodyAr ?? ""),
+      bodyEn: String(f.body_en ?? f.bodyEn ?? ""),
     })),
 
     howTitleAr: data.how_title_ar,
     howTitleEn: data.how_title_en,
-    howSteps: rawSteps.map((s: any) => ({
-      step: s.step,
-      titleAr: s.title_ar ?? s.titleAr ?? "",
-      titleEn: s.title_en ?? s.titleEn ?? "",
-      bodyAr: s.body_ar ?? s.bodyAr ?? "",
-      bodyEn: s.body_en ?? s.bodyEn ?? "",
+    howSteps: rawSteps.map((s) => ({
+      step: String(s.step ?? ""),
+      titleAr: String(s.title_ar ?? s.titleAr ?? ""),
+      titleEn: String(s.title_en ?? s.titleEn ?? ""),
+      bodyAr: String(s.body_ar ?? s.bodyAr ?? ""),
+      bodyEn: String(s.body_en ?? s.bodyEn ?? ""),
     })),
 
     ctaTitleAr: data.cta_title_ar,

@@ -92,6 +92,98 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_api_keys: {
+        Row: {
+          agency_id: string
+          allowed_ips: string[] | null
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          rate_limit_per_minute: number
+        }
+        Insert: {
+          agency_id: string
+          allowed_ips?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          rate_limit_per_minute?: number
+        }
+        Update: {
+          agency_id?: string
+          allowed_ips?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          rate_limit_per_minute?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_api_keys_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_api_keys_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agency_supplier_preferences: {
+        Row: {
+          agency_id: string
+          is_enabled: boolean
+          supplier_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          agency_id: string
+          is_enabled?: boolean
+          supplier_key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          agency_id?: string
+          is_enabled?: boolean
+          supplier_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_supplier_preferences_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       allocations: {
         Row: {
           allotment: number
@@ -767,92 +859,6 @@ export type Database = {
           },
         ]
       }
-      homepage_content: {
-        Row: {
-          cta_body_ar: string
-          cta_body_en: string
-          cta_button_ar: string
-          cta_button_en: string
-          cta_title_ar: string
-          cta_title_en: string
-          features: Json
-          features_subtitle_ar: string
-          features_subtitle_en: string
-          features_title_ar: string
-          features_title_en: string
-          hero_eyebrow_ar: string
-          hero_eyebrow_en: string
-          hero_subtitle_ar: string
-          hero_subtitle_en: string
-          hero_title_ar: string
-          hero_title_en: string
-          how_steps: Json
-          how_title_ar: string
-          how_title_en: string
-          id: boolean
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          cta_body_ar?: string
-          cta_body_en?: string
-          cta_button_ar?: string
-          cta_button_en?: string
-          cta_title_ar?: string
-          cta_title_en?: string
-          features?: Json
-          features_subtitle_ar?: string
-          features_subtitle_en?: string
-          features_title_ar?: string
-          features_title_en?: string
-          hero_eyebrow_ar?: string
-          hero_eyebrow_en?: string
-          hero_subtitle_ar?: string
-          hero_subtitle_en?: string
-          hero_title_ar?: string
-          hero_title_en?: string
-          how_steps?: Json
-          how_title_ar?: string
-          how_title_en?: string
-          id?: boolean
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          cta_body_ar?: string
-          cta_body_en?: string
-          cta_button_ar?: string
-          cta_button_en?: string
-          cta_title_ar?: string
-          cta_title_en?: string
-          features?: Json
-          features_subtitle_ar?: string
-          features_subtitle_en?: string
-          features_title_ar?: string
-          features_title_en?: string
-          hero_eyebrow_ar?: string
-          hero_eyebrow_en?: string
-          hero_subtitle_ar?: string
-          hero_subtitle_en?: string
-          hero_title_ar?: string
-          hero_title_en?: string
-          how_steps?: Json
-          how_title_ar?: string
-          how_title_en?: string
-          id?: boolean
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "homepage_content_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       crm_activities: {
         Row: {
           agency_id: string | null
@@ -1280,6 +1286,92 @@ export type Database = {
           },
         ]
       }
+      homepage_content: {
+        Row: {
+          cta_body_ar: string
+          cta_body_en: string
+          cta_button_ar: string
+          cta_button_en: string
+          cta_title_ar: string
+          cta_title_en: string
+          features: Json
+          features_subtitle_ar: string
+          features_subtitle_en: string
+          features_title_ar: string
+          features_title_en: string
+          hero_eyebrow_ar: string
+          hero_eyebrow_en: string
+          hero_subtitle_ar: string
+          hero_subtitle_en: string
+          hero_title_ar: string
+          hero_title_en: string
+          how_steps: Json
+          how_title_ar: string
+          how_title_en: string
+          id: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          cta_body_ar?: string
+          cta_body_en?: string
+          cta_button_ar?: string
+          cta_button_en?: string
+          cta_title_ar?: string
+          cta_title_en?: string
+          features?: Json
+          features_subtitle_ar?: string
+          features_subtitle_en?: string
+          features_title_ar?: string
+          features_title_en?: string
+          hero_eyebrow_ar?: string
+          hero_eyebrow_en?: string
+          hero_subtitle_ar?: string
+          hero_subtitle_en?: string
+          hero_title_ar?: string
+          hero_title_en?: string
+          how_steps?: Json
+          how_title_ar?: string
+          how_title_en?: string
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          cta_body_ar?: string
+          cta_body_en?: string
+          cta_button_ar?: string
+          cta_button_en?: string
+          cta_title_ar?: string
+          cta_title_en?: string
+          features?: Json
+          features_subtitle_ar?: string
+          features_subtitle_en?: string
+          features_title_ar?: string
+          features_title_en?: string
+          hero_eyebrow_ar?: string
+          hero_eyebrow_en?: string
+          hero_subtitle_ar?: string
+          hero_subtitle_en?: string
+          hero_title_ar?: string
+          hero_title_en?: string
+          how_steps?: Json
+          how_title_ar?: string
+          how_title_en?: string
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homepage_content_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_amenities: {
         Row: {
           amenity_key: string
@@ -1372,6 +1464,44 @@ export type Database = {
             columns: ["room_type_id"]
             isOneToOne: false
             referencedRelation: "room_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_supplier_mappings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          hotel_id: string
+          id: string
+          supplier_hotel_name: string | null
+          supplier_hotel_ref: string
+          supplier_key: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          hotel_id: string
+          id?: string
+          supplier_hotel_name?: string | null
+          supplier_hotel_ref: string
+          supplier_key: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          hotel_id?: string
+          id?: string
+          supplier_hotel_name?: string | null
+          supplier_hotel_ref?: string
+          supplier_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_supplier_mappings_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
             referencedColumns: ["id"]
           },
         ]
@@ -3161,6 +3291,18 @@ export type Database = {
         }
         Returns: string
       }
+      authenticate_b2b_api_key: {
+        Args: { p_key_hash: string }
+        Returns: {
+          agency_code: string
+          agency_id: string
+          agency_name: string
+          agency_status: string
+          allowed_ips: string[]
+          key_id: string
+          rate_limit: number
+        }[]
+      }
       authorize: { Args: { p_permission: string }; Returns: boolean }
       booking_driver_contacts: {
         Args: { p_booking_id: string }
@@ -3186,6 +3328,31 @@ export type Database = {
       convert_lead: {
         Args: { p_agency_id: string; p_lead_id: string }
         Returns: undefined
+      }
+      create_b2b_api_booking: {
+        Args: {
+          p_adults: number
+          p_agency_id: string
+          p_check_in: string
+          p_check_out: string
+          p_children: number
+          p_client_reference?: string
+          p_guest_email?: string
+          p_guest_name: string
+          p_guest_phone?: string
+          p_promo_code?: string
+          p_rate_plan_id: string
+          p_requests?: string
+          p_room_type_id: string
+          p_rooms: number
+        }
+        Returns: {
+          booking_id: string
+          currency_code: string
+          reference: string
+          status: string
+          total_sell: number
+        }[]
       }
       create_booking: {
         Args: {
@@ -3291,6 +3458,10 @@ export type Database = {
         }[]
       }
       enabled_supplier_keys: { Args: never; Returns: string[] }
+      enabled_supplier_keys_for_agency: {
+        Args: { p_agency_id?: string }
+        Returns: string[]
+      }
       evaluate_promo_code: {
         Args: {
           p_agency_id: string
@@ -3592,6 +3763,14 @@ export type Database = {
         Args: {
           p_agency_id: string
           p_status: Database["public"]["Enums"]["agency_status"]
+        }
+        Returns: undefined
+      }
+      set_agency_supplier_preference: {
+        Args: {
+          p_agency_id: string
+          p_is_enabled: boolean
+          p_supplier_key: string
         }
         Returns: undefined
       }

@@ -129,12 +129,12 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
             ) : (
               (pendingAgencies ?? []).map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell className="font-mono text-xs" dir="ltr">
+                  <TableCell className="text-start">
                     <Link
                       href={`/admin/agencies/${a.id}`}
-                      className="font-medium text-brand-700 hover:underline"
+                      className="inline-flex items-center font-mono text-xs font-semibold text-brand-700 hover:text-brand-800 hover:underline bg-brand-50 px-2 py-0.5 rounded border border-brand-200/60"
                     >
-                      {a.code}
+                      <span dir="ltr">{a.code}</span>
                     </Link>
                   </TableCell>
                   <TableCell>
@@ -145,9 +145,15 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
                       {a.name}
                     </Link>
                   </TableCell>
-                  <TableCell dir="ltr">{a.email}</TableCell>
-                  <TableCell dir="ltr">{a.country_code}</TableCell>
-                  <TableCell className="text-xs text-ink-muted">
+                  <TableCell className="text-start">
+                    <span dir="ltr" className="text-xs text-ink-muted">
+                      {a.email}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-center font-mono text-xs">
+                    <span dir="ltr">{a.country_code}</span>
+                  </TableCell>
+                  <TableCell className="text-xs text-ink-muted whitespace-nowrap">
                     {formatDate(a.created_at, locale)}
                   </TableCell>
                   <TableCell>

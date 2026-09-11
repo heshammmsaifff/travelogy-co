@@ -13,6 +13,7 @@ import {
   LuBus,
   LuMapPinned,
   LuUsers,
+  LuCode,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 import type { Locale } from "@/shared/i18n/config";
@@ -54,6 +55,7 @@ const ACCOUNT_SECTIONS: NavDef[] = [
   { key: "statement", href: "/agent/statement", icon: LuReceipt },
   { key: "team", href: "/agent/team", icon: LuUsers },
   { key: "profile", href: "/agent/profile", icon: LuBuilding2 },
+  { key: "developer", href: "/agent/developer", icon: LuCode },
 ];
 
 interface AgentSidebarProps {

@@ -10,7 +10,6 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Modal } from "@/shared/ui/modal";
 import { NativeSelect } from "@/shared/ui/select";
-import { Checkbox } from "@/shared/ui/checkbox";
 import type { PermissionRow, RoleSummary } from "@/modules/auth/infrastructure/access.repository";
 import {
   createRoleAction,

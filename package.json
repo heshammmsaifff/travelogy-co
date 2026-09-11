@@ -10,7 +10,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:push": "supabase db push",
-    "db:types": "supabase gen types typescript --linked > src/shared/types/database.ts"
+    "db:types": "supabase gen types typescript --linked > src/shared/types/database.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -43,6 +44,7 @@
     "sileo": "^0.1.5",
     "sweetalert2": "^11.26.25",
     "tailwind-merge": "^3.6.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.5.4"
   },
   "devDependencies": {
@@ -57,7 +59,9 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "supabase": "^2.116.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0"
   },
   "name": "last-line-travel",
   "version": "0.1.0"

@@ -4,16 +4,21 @@ This file is the persistent project context for Claude Code. Read it in full bef
 
 ## 1. What we're building
 
-A B2B travel booking platform: a company ("the Client") sells travel services (starting with hotels, later transfers, packages, etc.) to travel agents, sub-agents, and corporate partners through two connected systems:
+A comprehensive B2B travel booking platform & marketplace: a company ("the Client") sells and distributes travel services (hotels, transfers, packages, driver operations, etc.) to travel agents, sub-agents, corporate partners, and technical travel buyers through three connected distribution systems:
 
-- **Agent Portal (B2B)** — where registered agents log in, search inventory, book on behalf of their own customers, manage quotations, view their booking history, track their credit balance, and download vouchers/invoices.
-- **Back-Office (Admin)** — where the Client's staff manage agents, inventory, rates, bookings, finance, content, and reporting.
+- **Agent Portal (B2B)** — where registered agents log in, search multi-source inventory, book on behalf of their own customers, manage quotations, view their booking history, track their credit balance, and download vouchers/invoices.
+- **Back-Office (Admin)** — where the Client's staff manage agents, inventory, rates, suppliers, bookings, finance, content, CRM, and reporting.
+- **Buyer REST API (B2B System-to-System)** — where technical buyers, OTAs, and external partner systems integrate directly via authenticated REST APIs to search, compare, and book hotel inventory.
 
-The functional scope below was distilled from a vendor proposal we received for this project (Technoheaven / "Travel Booking Engine"), used only as a **requirements reference** — a description of the business capabilities a B2B travel platform of this kind needs. This is an independent, original implementation: we are not using, adapting, or referencing that vendor's source code, UI, database design, or any proprietary material — only the general, industry-standard business functionality described (agent portals, back-office travel management, hotel contracting, etc., which are common patterns across the whole B2B travel industry, not proprietary to any one vendor). Build everything from scratch, in our own architecture, named and structured however this document specifies.
+The functional scope of this project synthesizes and unifies requirements from two core reference documents:
+1. **Technoheaven Vendor Proposal (`Project Proposal for B2B Last Line Travel.docx`)** — provided the foundational business capabilities for a full-service B2B travel provider: agent management, back-office operations, hotel contracting, transfers, driver operations, fixed departure packages, CRM, and financial ledger control.
+2. **Hotels B2B Hub SRS (`Hotels B2B Hub.pdf` v1.0)** — provided the advanced Bed-Bank Aggregator & Switch capabilities: live integration with tier-1 hotel bedbanks (Hotelbeds, WebBeds, TBO, itrip, Within Earth, RateHawk), hotel deduplication & lowest-price aggregation, static rate contract upload (CSV/Excel), buyer-specific supplier preferences, and buyer-facing REST APIs.
 
-**Scope philosophy (explicitly decided by the client of this project):** build *everything* described below, but in phases. Hotels, transfers, packages, CRM, driver operations and external supplier API integrations are all in scope — they are simply sequenced so the foundation and the Hotel module (the first real product) are solid before anything else is added. Do not silently drop a later-phase module; it is deferred, not removed.
+This is an independent, original implementation: we are not using, adapting, or referencing vendor source code, proprietary UI, or proprietary databases. Build everything from scratch in our own clean architecture, named and structured however this document specifies.
 
-**The one deliberate exclusion: payment gateways.** The client has since decided there will be no online payment processing in this platform, in any phase (§10). That is *removed*, not deferred — do not re-add gateway scaffolding on the assumption it will be wanted later.
+**Scope philosophy (explicitly decided by the client of this project):** build *everything* described across the merged specifications, phased sequentially. Phases 0 through 8 establish the solid foundation, internal hotel contracting, portals, finance, CMS, reports, and all extended products (transfers, driver ops, packages, CRM). The remaining phases deliver the multi-supplier aggregation engine, static rate ingestion, buyer B2B API, and launch hardening.
+
+**The one deliberate exclusion: payment gateways.** The client has decided there will be no online payment processing in this platform, in any phase (§10). That is *settled and removed*, not deferred — agents transact strictly against their managed credit balance and ledger-backed manual payment reconciliation.
 
 ## 2. Guiding principles
 
@@ -193,16 +198,31 @@ Pipeline for every image upload (hotel photos, banners, documents where relevant
 3. Store the returned Cloudinary URL/public_id in Supabase, not the binary.
 4. When rendering, use Cloudinary transformation URLs (`f_auto,q_auto`) so Cloudinary also serves the optimal format/quality per browser — the client-side compression and Cloudinary's own optimization are complementary, not redundant (client-side saves upload bandwidth and Cloudinary storage; `f_auto,q_auto` saves delivery bandwidth).
 
-## 9. Hotel supplier abstraction (internal + external, both supported)
+## 9. Hotel supplier abstraction & multi-supplier aggregation (internal + external, both supported)
 
-The client wants both an internally-managed inventory (admin enters hotels/rooms/rates by hand) and the ability to plug in real external hotel suppliers later — without rewriting the booking/search flow. Model this with a port/adapter pattern from the start:
+The platform supports both internally-managed inventory (contracted hotels/rooms/rates entered by hand or bulk-uploaded via CSV/Excel) and multiple external live hotel suppliers (bedbanks/wholesalers) — unified through a robust aggregation and normalization engine:
 
 - `modules/hotels/domain/ports/hotel-supplier.port.ts` — an interface with methods like `searchAvailability`, `getRatePlans`, `createBooking`, `cancelBooking`, returning a common internal domain shape regardless of provider.
-- `modules/hotels/infrastructure/providers/internal-inventory.provider.ts` — implements the port using our own Supabase-managed hotels/rooms/rates/allocation tables. This is the only active provider in Phase 3.
-- `modules/hotels/infrastructure/providers/external/*.provider.ts` — one adapter per external supplier (e.g. RateHawk, Hotelbeds), added in Phase 3b/Phase 9 once the super_admin has entered credentials, each mapping that supplier's API responses into the same common shape.
-- A small aggregator/registry merges results from whichever providers are enabled, so the search/booking UI never needs to know which provider a result came from.
-
-Do not build the external adapters against real credentials until they're provided — build the port and the internal provider first (Phase 3a), and the adapter interface + one stubbed/sandboxed external example (Phase 3b) so the seam exists and is proven, without blocking on a vendor contract.
+- `modules/hotels/infrastructure/providers/internal-inventory.provider.ts` — implements the port using our own Supabase-managed hotels/rooms/rates/allocation tables.
+- `modules/hotels/infrastructure/providers/external/*.provider.ts` — one adapter per external supplier, mapping each supplier's API response into the same common shape. Supported Phase 1 suppliers from Hotels B2B Hub & proposal:
+  - **Hotelbeds**
+  - **WebBeds**
+  - **TBO**
+  - **itrip**
+  - **Within Earth**
+  - **RateHawk**
+  - *(Optional flight/transfer integrations, e.g. Amadeus)*
+- **Hotel Deduplication & Normalization Engine:** When multiple suppliers (or static contracts) provide inventory for the same physical property:
+  - Properties are mapped and matched across suppliers (by standardized name, destination, geo-coordinates, or supplier mapping code).
+  - The aggregation engine compares offers across all active suppliers for that property.
+  - The lowest available rate is presented to the buyer by default, while retaining supplier-level comparison context.
+- **Static Rate Contract Ingestion (CSV / Excel):**
+  - Administrative static rate upload module accepting CSV and Excel files for contracted rates.
+  - Automated file structure and data validation (dates, room codes, occupancy, meal plans, currency, net rates).
+  - Validated static rates are ingested directly into the searchable internal inventory and participate in multi-supplier price comparison.
+- **Buyer Supplier Preferences & Controls:**
+  - Buyer Admins can configure which suppliers are enabled or excluded for their specific agency.
+  - Search queries execute only against suppliers permitted for that buyer organization.
 
 ### Supplier credentials — entered by the super_admin, stored encrypted
 
@@ -276,14 +296,21 @@ Admin-editable homepage banners and static page content (About/Privacy/Terms), o
 **Phase 7 — Reports & analytics**
 Booking reports, agent performance/profitability reports, hotel reports, exportable to CSV/Excel.
 
-**Phase 8 — Additional product modules (same pattern as the hotel module)**
-Transfers module, Packages/Tours module, CRM module, Driver operations (start as a responsive web view before considering a native app) — each following the same domain/application/infrastructure/presentation split and the same supplier-provider pattern where relevant.
+**Phase 8 — Additional product modules (same pattern as the hotel module) [COMPLETED]**
+Transfers module (8a), Driver operations (8b), Packages/Tours module (8c), CRM module (8d) — each following the same domain/application/infrastructure/presentation split and the same supplier-provider pattern where relevant. All verified and operational.
 
-**Phase 9 — External supplier expansion**
-Add further external hotel/activity/transfer suppliers and, if still wanted, a flight API (e.g. Amadeus) using the adapter pattern from §9 — only once credentials are available.
+**Phase 9 — Multi-Supplier Aggregation, Deduplication & Static Rate Management (Hotels B2B Hub Core)**
+- **9a: Live Supplier Integrations:** Connect external hotel bedbanks and wholesalers via the port/adapter pattern using encrypted credentials in Supabase Vault (§9). Target suppliers from merged specs: Hotelbeds, WebBeds, TBO, itrip, Within Earth, RateHawk, and optional flight/transfer connections (e.g. Amadeus).
+- **9b: Hotel Deduplication & Aggregation Engine:** Implement property mapping and deduplication across suppliers; compare offers and display lowest available rate per hotel by default; support supplier-level comparison; honor buyer-level supplier inclusion/exclusion settings.
+- **9c: Static Rate Management (CSV / Excel Ingestion):** Build back-office static rate upload accepting CSV and Excel files; schema and date validation; store rates in searchable inventory to participate seamlessly in aggregation and lowest-price selection.
 
-**Phase 10 — Hardening, testing & launch**
-RLS audit, rate-limiting review, caching/query performance pass, image pipeline audit, Lighthouse + accessibility pass, error monitoring, unit tests for domain/application logic, Playwright coverage of critical paths (registration, login, search, booking, admin approval), production Supabase project, Vercel deployment, custom domain, SEO basics, and a short admin/agent user guide.
+**Phase 10 — Buyer B2B REST API (System-to-System Distribution / XML Out)**
+- Secure, high-performance REST API endpoints for external B2B partners, OTAs, and tour operators: Search availability, Hotel/Room/Rate details, Booking creation, and Booking management (view, status, cancel).
+- Authentication via buyer-specific API keys and secret tokens, rate limiting and throttling controls, and strict request validation.
+- Interactive OpenAPI / Swagger technical documentation for partner integration teams.
+
+**Phase 11 — Hardening, Testing & Launch**
+RLS security audit, rate-limiting review, caching/query performance pass, image pipeline audit, Lighthouse + accessibility pass, error monitoring. Mandatory custom SMTP configuration & live email confirmation/voucher delivery. Automated Vitest unit tests for domain/application logic and Playwright E2E coverage of critical paths (registration, login, search, booking, admin approval, and API endpoints). Production Supabase project setup, Vercel deployment, custom domain, SEO basics, and admin/agent user manuals.
 
 ## 14. Working agreement for Claude Code
 
@@ -1039,7 +1066,20 @@ call, not a blocker.
 
 **Known gaps deliberately left open at the end of Phase 0:**
 - ~~`POST /api/media/signature` is unauthenticated~~ — **closed in Phase 1**: it now requires an active session and is rate-limited per user id.
-- `src/shared/lib/rate-limit.ts` is in-memory and per-instance. Adequate for now; Phase 10 replaces it with a shared store.
+- `src/shared/lib/rate-limit.ts` is in-memory and per-instance. Adequate for now; Phase 11 replaces it with a shared store.
 - ~~`src/shared/types/database.ts` is a placeholder~~ — **closed in Phase 1**: generated from the live schema via `npm run db:types`.
-- `/[locale]/ui-kit` is an internal verification page and should be excluded from the production build in Phase 10.
+- `/[locale]/ui-kit` is an internal verification page and should be excluded from the production build in Phase 11.
 - ~~The Supabase CLI one-time setup has not been done~~ — **done**: the repo is linked to project `yngfurepjssbssrrbgkb` and all Phase 1 migrations were applied with `supabase db push`.
+
+### Scope Merger: Hotels B2B Hub SRS & Vendor Proposal — decided 2026-09-11
+
+Requested by the client to unify `Hotels B2B Hub.pdf` (SRS v1.0) and `Project Proposal for B2B Last Line Travel.docx` into `CLAUDE.md`.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 20.1 | **Unify multi-supplier bedbank capabilities into Phase 9.** | Hotels B2B Hub defines high-value aggregation logic: integrating Hotelbeds, WebBeds, TBO, itrip, Within Earth, and RateHawk; deduplicating properties across multiple suppliers; displaying the lowest available rate by default; and supporting buyer-specific supplier preferences. This enriches Phase 9 with concrete supplier requirements. |
+| 20.2 | **Add Static Rate Contract Management (CSV/Excel ingestion) to Phase 9.** | In addition to direct back-office form entry, administrative bulk upload of contracted rates via CSV/Excel enables rapid loading of contracted hotel inventory alongside live supplier feeds. |
+| 20.3 | **Introduce Phase 10: Buyer B2B REST API (System-to-System Distribution / XML Out).** | Fulfills the B2B API requirement from Hotels B2B Hub and the "XML Out" capability from the vendor proposal. Allows OTAs and partner systems to search and book programmatically via secure API keys with throttling and OpenAPI docs. |
+| 20.4 | **Hardening, Testing & Launch sequenced as Phase 11.** | Accommodating the Buyer REST API as a dedicated, fully tested phase before launch hardening. Phasing sequence: 9 phases completed (Phases 0 through 8), and 3 remaining phases (Phases 9, 10, 11). |
+| 20.5 | **Reaffirm zero payment gateway policy.** | Although payment gateways were mentioned in the proposal and noted as an open decision in the SRS, the platform's core architectural principle of strictly using credit accounts, balance tracking, and ledger-based reconciliation (§10) is reaffirmed and maintained. |
+

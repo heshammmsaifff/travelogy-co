@@ -25,6 +25,7 @@
     "previous": "السابق",
     "next": "التالي",
     "edit": "تعديل",
+    "view": "عرض",
     "searchCountry": "ابحث عن دولة",
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور"
@@ -306,6 +307,10 @@
         "profile": {
           "title": "ملف الشركة",
           "body": "حافظ على بيانات شركتك التي تظهر في مستنداتك محدّثة."
+        },
+        "developer": {
+          "title": "بوابة المطورين والربط الآلي",
+          "body": "مفاتيح API وتوثيق B2B REST للتوزيع والربط بين الأنظمة."
         }
       }
     },
@@ -322,7 +327,8 @@
       "team": "فريق العمل",
       "profile": "الشركة",
       "transfers": "النقل",
-      "packages": "الباقات"
+      "packages": "الباقات",
+      "developer": "المطورين والربط (API)"
     },
     "team": {
       "title": "إدارة فريق العمل",
@@ -1096,7 +1102,10 @@
       "coverExists": "توجد صورة رئيسية بالفعل.",
       "codeTaken": "هذا الرمز مستخدم بالفعل.",
       "invalidLocationUrl": "رابط الموقع يجب أن يبدأ بـ http:// أو https://"
-    }
+    },
+    "uploadRates": "رفع الأسعار (Excel)",
+    "ratesUploadTitle": "رفع الأسعار التعاقدية",
+    "ratesUploadDescription": "استيراد وتحديث أسعار وعقود الغرف دفعة واحدة من ملف Excel أو CSV"
   },
   "settings": {
     "title": "الإعدادات",
@@ -1168,7 +1177,12 @@
       "invalidCredential": "بيانات المفتاح غير صحيحة.",
       "saveFailed": "تعذّر الحفظ.",
       "noAdapter": "لا يوجد محوّل مبرمج لهذا المورد."
-    }
+    },
+    "preferencesTitle": "تفضيلات الموردين والربط",
+    "preferencesDescription": "حدد الموردين الخارجيين المسموح بوكالتك استعراض أسعارهم وغرفهم في نتائج البحث.",
+    "preferencesSaved": "تم حفظ تفضيل المورد بنجاح.",
+    "globallyDisabled": "موقوف من الإدارة",
+    "noSuppliersAvailable": "لا يوجد موردون خارجيون مفعلون حالياً."
   },
   "markup": {
     "title": "هوامش الربح",
@@ -1247,7 +1261,9 @@
     "errors": {
       "searchFailed": "تعذّر إتمام البحث. حاول مرة أخرى.",
       "partialResults": "نتائج جزئية: {count} مورد لم يستجب."
-    }
+    },
+    "multiSupplierCount": "{count} موردين",
+    "bestPriceFrom": "أفضل سعر من {supplier}"
   },
   "site": {
     "nav": {
@@ -1419,7 +1435,7 @@
       "creditLimit": "الحد الائتماني",
       "currency": "العملة"
     },
-    "locked": "تحدده لاست لاين ترافل. تواصل معنا لتغييره.",
+    "locked": "تحدده ترافيلوجي. تواصل معنا لتغييره.",
     "save": "حفظ التعديلات",
     "saved": "تم تحديث ملف الشركة.",
     "errors": {
@@ -2239,6 +2255,101 @@
       "agencyTaken": "يوجد عميل محتمل آخر مرتبط بهذه الوكالة بالفعل.",
       "agencyGone": "هذه الوكالة لم تعد موجودة.",
       "notFound": "هذا العميل المحتمل لم يعد موجودًا."
+    }
+  },
+  "staticRates": {
+    "title": "رفع أسعار العقود (Static Rates)",
+    "description": "استيراد وتحديث أسعار وعقود الغرف دفعة واحدة من ملف Excel أو CSV مع التحقق الآلي من صحة البيانات والربط بالأكواد.",
+    "uploadCardTitle": "ملف الأسعار التعاقدية",
+    "uploadCardDescription": "اختر ملف Excel (.xlsx, .xls) أو CSV يحتوي على أسعار وعقود الغرف.",
+    "downloadTemplate": "تحميل نموذج Excel / CSV",
+    "dragOrSelectFile": "اسحب الملف وأفلته هنا، أو اختر من جهازك",
+    "supportedFormats": "يدعم .xlsx و .xls و .csv (حجم أقصى 10 ميجابايت)",
+    "selectFileButton": "اختيار ملف",
+    "parseSuccessTitle": "تمت معالجة الملف بنجاح",
+    "parseSuccessDesc": "تم فحص {total} صفًا ({valid} صف صالح للاستيراد)",
+    "importCompleteTitle": "اكتمل الاستيراد بنجاح",
+    "importCompleteDesc": "تم استيراد وتحديث {count} سعر تعاقدي بنجاح في قاعدة البيانات.",
+    "previewTitle": "معاينة البيانات والتحقق من الصحة",
+    "previewStats": "الإجمالي: {total} صف | صالح: {valid} | يحتاج تصحيح: {errors}",
+    "confirmImportButton": "تأكيد واستيراد {count} سعر تعاقدي",
+    "cols": {
+      "row": "#",
+      "status": "الحالة",
+      "invalid": "غير صالح",
+      "hotelCode": "كود الفندق",
+      "roomCode": "كود الغرفة",
+      "planCode": "خطة الأسعار",
+      "dates": "الفترة",
+      "rate": "السعر الصافي",
+      "allotment": "الغرف المخصصة",
+      "notes": "الملاحظات والأخطاء"
+    }
+  },
+  "b2bApi": {
+    "developerPageTitle": "بوابة المطورين والربط البرمجي (B2B API)",
+    "developerPageDescription": "إدارة مفاتيح الـ API للربط مع الأنظمة الخارجية والـ OTAs، وتصفح نقاط النهاية البرمجية ووثائق OpenAPI 3.1.",
+    "keysCardTitle": "مفاتيح الربط البرمجي (API Keys)",
+    "keysCardDescription": "تُستخدم هذه المفاتيح للتعريف بوكالتك وإجراء عمليات البحث والحجز برمجياً.",
+    "generateKeyButton": "إنشاء مفتاح API جديد",
+    "noKeysTitle": "لا توجد مفاتيح API حتى الآن",
+    "noKeysDescription": "قم بإنشاء مفتاحك الأول للبدء في ربط نظام وكالتك مع ترافيلوجي.",
+    "status": {
+      "active": "نشط",
+      "inactive": "معطل"
+    },
+    "rateLimitLabel": "{limit} طلب / دقيقة",
+    "createdAtLabel": "أُنشئ في {date}",
+    "lastUsedLabel": "آخر استخدام {date}",
+    "neverUsed": "لم يُستخدم بعد",
+    "ipWhitelistLabel": "عناوين IP المسموحة",
+    "toggleStatus": "تغيير حالة المفتاح",
+    "keyCreatedTitle": "تم إنشاء المفتاح بنجاح",
+    "copiedToClipboard": "تم النسخ إلى الحافظة",
+    "statusUpdated": "تم تحديث حالة المفتاح",
+    "confirmDeleteTitle": "حذف مفتاح الـ API؟",
+    "confirmDeleteBody": "سيتم إيقاف المفتاح \"{name}\" نهائياً ولن تتمكن الأنظمة المرتبطة به من الوصول للخدمات.",
+    "keyDeleted": "تم حذف المفتاح بنجاح",
+    "modalCreateTitle": "إنشاء مفتاح API جديد",
+    "modalCreateDesc": "أدخل اسماً توضيحياً للمفتاح وحدد اختيارات الأمان.",
+    "fields": {
+      "keyName": "اسم المفتاح (مثال: سيرفر الحجوزات، بيئة الاختبار)",
+      "keyNamePlaceholder": "مثال: Production Booking Engine",
+      "allowedIps": "عناوين IP المسموح بها (اختياري)",
+      "allowedIpsPlaceholder": "192.168.1.1, 10.0.0.1",
+      "allowedIpsHint": "افصل بين العناوين بفاصلة. إذا تركتها فارغة، سيُسمح بالطلب من أي عنوان IP."
+    },
+    "createKeySubmit": "توليد المفتاح",
+    "modalRevealTitle": "احفظ مفتاح الـ API السري",
+    "modalRevealDesc": "يرجى نسخ المفتاح الآن وتخزينه في مكان آمن. لن تتمكن من رؤيته مرة أخرى!",
+    "secretWarningTitle": "تنبيه أمني هام",
+    "secretWarningBody": "هذا المفتاح يمنح حق إجراء الحجوزات خصماً من رصيد وكالتك. لا تشاركه في أماكن عامة.",
+    "yourApiKeyLabel": "مفتاحك السري (Secret Key)",
+    "copied": "تم النسخ!",
+    "copy": "نسخ",
+    "closeModalDone": "تم النسخ والحفظ، إغلاق",
+    "authGuideTitle": "طريقة التوثيق (Authentication)",
+    "authGuideBody": "أرسل مفتاح الـ API السري في ترويسة X-API-Key أو Authorization: Bearer مع كل طلب برمجياً.",
+    "rateLimitsTitle": "معدل الطلبات (Rate Limits)",
+    "rateLimitsBody": "تخضع الطلبات لمعدل محدد بالدقيقة لكل مفتاح لمنع الإفراط وتأمين استقرار الخدمة.",
+    "specTitle": "وثائق OpenAPI 3.1",
+    "specBody": "يدعم النظام المعايير العالمية الكاملة لمواصفات OpenAPI 3.1 و Swagger للتكامل السريع.",
+    "viewOpenApiJson": "عرض ملف openapi.json",
+    "endpointsReferenceTitle": "نقاط النهاية البرمجية (REST Endpoints)",
+    "endpointsReferenceDesc": "قائمة نقاط النهاية المتاحة لوكالتك مع أمثلة أوامر cURL للاختبار الفوري.",
+    "docs": {
+      "searchSummary": "البحث عن الفنادق والغرف المتاحة والأسعار",
+      "searchDesc": "بحث فوري ومجمع عبر المخزون الداخلي وبنوك الغرف الخارجية مع تطبيق هوامش ربح وكالتك.",
+      "hotelDetailSummary": "تفاصيل وبيانات الفندق والمرافق",
+      "hotelDetailDesc": "استرجاع الموقع والوصف والصور والسياسات الخاصة بالفندق.",
+      "createBookingSummary": "إنشاء وحجز الغرف برمجياً",
+      "createBookingDesc": "حجز فوري للغرف المحددة مع التحقق من الرصيد والخصم من الحد الائتماني لوكالتك.",
+      "getBookingSummary": "الاستعلام عن تفاصيل وحالة الحجز",
+      "getBookingDesc": "جلب تفاصيل الحجز ورموز التأكيد وروابط السندات والفواتير عبر رقم الحجز أو الكود.",
+      "cancelBookingSummary": "إلغاء الحجز واستعادة الرصيد والمخزون",
+      "cancelBookingDesc": "إلغاء آمن للحجز وفقاً لسياسة الإلغاء مع تحرير الرصيد الائتماني المستهلك.",
+      "balanceSummary": "الاستعلام عن الرصيد والحد الائتماني للوكالة",
+      "balanceDesc": "معرفة الحد الائتماني الإجمالي، الرصيد المستهلك، والمبلغ المتاح حالياً للحجز."
     }
   }
 }

@@ -171,5 +171,24 @@ export async function updateAgencyAction(formData: FormData): Promise<Result> {
   if (error) return toResult(error, "agencies.errors.updateFailed");
 
   revalidateAgencies();
-  return { ok: true, messageKey: "agencies.updated" };
+  return { ok: true, messageKey: "agencies.saved" };
+}
+
+export async function setAgencySupplierPreferenceAction(
+  agencyId: string,
+  supplierKey: string,
+  isEnabled: boolean,
+): Promise<Result> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_agency_supplier_preference", {
+    p_agency_id: agencyId,
+    p_supplier_key: supplierKey,
+    p_is_enabled: isEnabled,
+  });
+
+  if (error) return toResult(error, "agencies.errors.updateFailed");
+
+  revalidatePath("/[locale]/agent/profile", "page");
+  revalidatePath("/[locale]/admin/agencies/[id]", "page");
+  return { ok: true, messageKey: "agencies.saved" };
 }

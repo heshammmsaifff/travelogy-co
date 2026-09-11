@@ -3,6 +3,7 @@ import {
   LuBuilding2,
   LuBus,
   LuCalendarClock,
+  LuCode,
   LuCreditCard,
   LuFileText,
   LuMapPinned,
@@ -60,6 +61,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ loc
     { key: "statement", href: "/agent/statement" },
     { key: "team", href: "/agent/team" },
     { key: "profile", href: "/agent/profile" },
+    { key: "developer", href: "/agent/developer" },
   ] as const;
 
   // Kept out of the quickLinks table so that stays plain data.
@@ -78,6 +80,8 @@ export default async function AgentDashboard({ params }: { params: Promise<{ loc
       return <LuReceipt className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden />;
     if (key === "team")
       return <LuUsers className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden />;
+    if (key === "developer")
+      return <LuCode className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden />;
     return <LuBuilding2 className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden />;
   };
 

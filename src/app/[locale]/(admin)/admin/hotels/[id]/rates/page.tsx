@@ -1,6 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { forbidden, notFound } from "next/navigation";
+import { LuUpload } from "react-icons/lu";
 import { isLocale } from "@/shared/i18n/config";
+import { Link } from "@/shared/i18n/navigation";
 import { formatCurrency, formatDate, formatNumber } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardBody, CardHeader } from "@/shared/ui/card";
@@ -81,12 +83,21 @@ export default async function RatesPage({
           description={t("plans.description")}
           actions={
             canEdit && rooms.length > 0 ? (
-              <AddPlanButton
-                hotelId={id}
-                mealPlans={mealPlans}
-                policies={policyOptions}
-                locale={locale}
-              />
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/admin/hotels/rates-upload"
+                  className="inline-flex items-center gap-1.5 rounded-control border border-border bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface-hover"
+                >
+                  <LuUpload className="size-3.5" aria-hidden />
+                  <span>{t("uploadRates")}</span>
+                </Link>
+                <AddPlanButton
+                  hotelId={id}
+                  mealPlans={mealPlans}
+                  policies={policyOptions}
+                  locale={locale}
+                />
+              </div>
             ) : undefined
           }
         />

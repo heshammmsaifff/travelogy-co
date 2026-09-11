@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { LuSearch } from "react-icons/lu";
+import { LuSearch, LuX } from "react-icons/lu";
 import { isLocale } from "@/shared/i18n/config";
 import { routing } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/cn";
@@ -97,13 +97,28 @@ export function CountrySelect({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setQuery("");
+            }
+          }}
           placeholder={t("searchCountry")}
           aria-label={t("searchCountry")}
           aria-controls={id}
           // Not part of the form: it filters the list and nothing more, so it
           // carries no `name` and never reaches the server.
-          className="h-9 w-full rounded-control border border-border bg-surface ps-9 pe-3 text-sm text-ink placeholder:text-ink-subtle focus-visible:outline-2 focus-visible:outline-focus"
+          className="h-9 w-full rounded-control border border-border bg-surface ps-9 pe-8 text-sm text-ink placeholder:text-ink-subtle focus-visible:outline-2 focus-visible:outline-focus"
         />
+        {query ? (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="absolute inset-y-0 end-0 flex items-center pe-2.5 text-ink-subtle hover:text-ink"
+            aria-label={t("cancel")}
+          >
+            <LuX className="size-4" aria-hidden />
+          </button>
+        ) : null}
       </div>
 
       <select
@@ -111,7 +126,20 @@ export function CountrySelect({
         name={name}
         required={required}
         value={selected}
-        onChange={(e) => setSelected(e.target.value)}
+        onChange={(e) => {
+          setSelected(e.target.value);
+          setQuery("");
+        }}
+        onClick={() => {
+          if (query) {
+            setQuery("");
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === "Escape") {
+            setQuery("");
+          }
+        }}
         aria-describedby={hint ? hintId : undefined}
         // Eight rows rather than a collapsed select: with a filter above it,
         // seeing the matches without opening anything is the point.

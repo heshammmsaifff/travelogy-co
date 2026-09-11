@@ -66,6 +66,8 @@ export default async function UiKitPage({ params }: { params: Promise<{ locale: 
   const { locale } = await params;
   // See isLocale(): a dotted path such as /favicon.ico reaches this route.
   if (!isLocale(locale)) notFound();
+  // Phase 11 Hardening: Exclude internal UI kit from production access
+  if (process.env.NODE_ENV === "production") notFound();
   setRequestLocale(locale);
 
   const t = await getTranslations("devKitchenSink");

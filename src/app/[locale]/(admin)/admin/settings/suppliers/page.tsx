@@ -19,6 +19,10 @@ const REQUIRED_CREDENTIALS: Record<string, string[]> = {
   sandbox: ["api_key"],
   ratehawk: ["key_id", "api_key"],
   hotelbeds: ["api_key", "secret"],
+  webbeds: ["username", "password", "endpoint"],
+  tbo: ["username", "password", "endpoint"],
+  itrip: ["api_key", "client_id"],
+  within_earth: ["api_key", "secret"],
 };
 
 export default async function SuppliersPage({ params }: { params: Promise<{ locale: string }> }) {

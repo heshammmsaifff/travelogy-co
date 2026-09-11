@@ -138,18 +138,16 @@ export function RegisterForm({ locale }: { locale: Locale }) {
           {t("register.contactSection")}
         </legend>
         <Input name="fullName" required label={t("fields.fullName")} leadingIcon={<LuUser />} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            dir="ltr"
-            label={t("fields.email")}
-            leadingIcon={<LuMail />}
-          />
-          <PhoneInput name="phone" required label={t("fields.phone")} />
-        </div>
+        <Input
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          dir="ltr"
+          label={t("fields.email")}
+          leadingIcon={<LuMail />}
+        />
+        <PhoneInput name="phone" required label={t("fields.phone")} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             name="password"

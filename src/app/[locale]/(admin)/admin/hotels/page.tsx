@@ -1,7 +1,14 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { forbidden, notFound } from "next/navigation";
 import Image from "next/image";
-import { LuChevronLeft, LuChevronRight, LuImageOff, LuSearch, LuStar } from "react-icons/lu";
+import {
+  LuChevronLeft,
+  LuChevronRight,
+  LuImageOff,
+  LuSearch,
+  LuStar,
+  LuUpload,
+} from "react-icons/lu";
 import { isLocale } from "@/shared/i18n/config";
 import { Link } from "@/shared/i18n/navigation";
 import { formatDate, formatNumber } from "@/shared/lib/format";
@@ -79,7 +86,18 @@ export default async function HotelsPage({
           <h1 className="text-2xl font-semibold tracking-tight text-ink">{t("title")}</h1>
           <p className="max-w-prose text-sm text-ink-muted">{t("description")}</p>
         </div>
-        {can(user, "hotels.create") ? <CreateHotelButton locale={locale} /> : null}
+        <div className="flex items-center gap-2">
+          {can(user, "hotels.rates.update") ? (
+            <Link
+              href="/admin/hotels/rates-upload"
+              className="inline-flex items-center gap-1.5 rounded-control border border-border bg-surface px-3 py-2 text-sm font-medium text-ink shadow-sm hover:bg-surface-hover"
+            >
+              <LuUpload className="size-4" aria-hidden />
+              <span>{t("uploadRates")}</span>
+            </Link>
+          ) : null}
+          {can(user, "hotels.create") ? <CreateHotelButton locale={locale} /> : null}
+        </div>
       </div>
 
       <Card>

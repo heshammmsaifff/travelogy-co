@@ -1,10 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { LuLayoutDashboard } from "react-icons/lu";
 import type { Locale } from "@/shared/i18n/config";
 import { Link } from "@/shared/i18n/navigation";
-import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
-import { buttonVariants } from "@/shared/ui/button-variants";
 import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
 import { landingPathFor } from "@/modules/auth/domain/user";
 import { SignOutButton } from "@/modules/auth/presentation/sign-out-button";
@@ -95,7 +92,6 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
 export async function SiteFooter({ locale }: { locale?: Locale } = {}) {
   const t = await getTranslations("site");
   const tNav = await getTranslations("site.nav");
-  const tApp = await getTranslations();
   const user = await getCurrentUser();
 
   const dashboardPath = user ? landingPathFor(user) : null;

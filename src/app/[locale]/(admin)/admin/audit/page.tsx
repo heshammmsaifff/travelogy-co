@@ -3,7 +3,6 @@ import { forbidden, notFound } from "next/navigation";
 import {
   LuChevronLeft,
   LuChevronRight,
-  LuFilter,
   LuSearch,
   LuUser,
 } from "react-icons/lu";

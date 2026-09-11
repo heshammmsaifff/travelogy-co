@@ -163,48 +163,72 @@ export default async function AgenciesPage({
         />
         <TableShell>
           <TableHead>
-            <TableHeaderCell>{t("colReference")}</TableHeaderCell>
-            <TableHeaderCell>{t("colName")}</TableHeaderCell>
-            <TableHeaderCell>{t("colStatus")}</TableHeaderCell>
-            <TableHeaderCell numeric>{t("colCreditLimit")}</TableHeaderCell>
-            <TableHeaderCell numeric>{t("colUsers")}</TableHeaderCell>
-            <TableHeaderCell numeric>{t("colCreated")}</TableHeaderCell>
+            <TableHeaderCell className="w-36 text-start">{t("colReference")}</TableHeaderCell>
+            <TableHeaderCell className="min-w-[220px] text-start">{t("colName")}</TableHeaderCell>
+            <TableHeaderCell className="w-28 text-center">{t("colStatus")}</TableHeaderCell>
+            <TableHeaderCell numeric className="w-36">{t("colCreditLimit")}</TableHeaderCell>
+            <TableHeaderCell className="w-24 text-center">{t("colUsers")}</TableHeaderCell>
+            <TableHeaderCell className="w-36 text-start">{t("colCreated")}</TableHeaderCell>
+            <TableHeaderCell className="w-16 text-center">
+              <span className="sr-only">{tCommon("actions")}</span>
+            </TableHeaderCell>
           </TableHead>
           <TableBody>
             {rows.length === 0 ? (
-              <TableEmpty colSpan={6}>{t("empty")}</TableEmpty>
+              <TableEmpty colSpan={7}>{t("empty")}</TableEmpty>
             ) : (
               rows.map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell className="font-mono text-xs" dir="ltr">
+                  <TableCell className="w-36 text-start">
                     <Link
                       href={`/admin/agencies/${a.id}`}
-                      className="hover:text-brand-700 hover:underline"
+                      className="inline-flex items-center font-mono text-xs font-semibold text-brand-700 hover:text-brand-800 hover:underline bg-brand-50 px-2 py-0.5 rounded border border-brand-200/60"
                     >
-                      {a.code}
+                      <span dir="ltr">{a.code}</span>
                     </Link>
                   </TableCell>
-                  <TableCell>
-                    <Link
-                      href={`/admin/agencies/${a.id}`}
-                      className="font-medium text-ink hover:text-brand-700 hover:underline"
-                    >
-                      {a.name}
-                    </Link>
-                    <span className="block text-xs text-ink-subtle" dir="ltr">
-                      {a.email}
-                    </span>
+                  <TableCell className="min-w-[220px] text-start">
+                    <div className="flex flex-col items-start gap-0.5">
+                      <Link
+                        href={`/admin/agencies/${a.id}`}
+                        className="font-medium text-ink hover:text-brand-700 hover:underline"
+                      >
+                        {a.name}
+                      </Link>
+                      {a.email ? (
+                        <span className="text-xs text-ink-muted inline-block" dir="ltr">
+                          {a.email}
+                        </span>
+                      ) : null}
+                    </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="w-28 text-center">
                     <Badge tone={STATUS_TONES[a.status as keyof typeof STATUS_TONES] ?? "neutral"}>
                       {tCommon(`status.${a.status}`)}
                     </Badge>
                   </TableCell>
-                  <TableCell numeric>
+                  <TableCell numeric className="w-36 font-medium">
                     {formatCurrency(a.creditLimit, locale, a.currencyCode)}
                   </TableCell>
-                  <TableCell numeric>{formatNumber(a.userCount, locale)}</TableCell>
-                  <TableCell numeric>{formatDate(a.createdAt, locale)}</TableCell>
+                  <TableCell className="w-24 text-center">
+                    <span className="inline-flex items-center justify-center size-6 rounded-full bg-surface-sunken border border-border text-xs font-semibold text-ink">
+                      {formatNumber(a.userCount, locale)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="w-36 text-start text-xs text-ink-muted whitespace-nowrap">
+                    {formatDate(a.createdAt, locale)}
+                  </TableCell>
+                  <TableCell className="w-16 text-center">
+                    <div className="flex justify-center">
+                      <Link
+                        href={`/admin/agencies/${a.id}`}
+                        aria-label={tCommon("view")}
+                        className="rounded-control p-1.5 text-ink-subtle hover:bg-brand-50 hover:text-brand-700 transition-colors"
+                      >
+                        <Next className="size-4" aria-hidden />
+                      </Link>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}

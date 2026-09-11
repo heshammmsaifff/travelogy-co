@@ -20,6 +20,7 @@ import { searchAllProviders } from "@/modules/hotels/infrastructure/providers/re
 import { listOpenQuotations } from "@/modules/bookings/infrastructure/quotations.repository";
 import { SaveOfferButton } from "@/modules/bookings/presentation/save-offer-button";
 import { BookRoomButton } from "@/modules/bookings/presentation/book-room-button";
+import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
 
 /** ISO date `days` from today, UTC. */
 function isoOffset(days: number): string {
@@ -88,19 +89,23 @@ export default async function AgentSearchPage({
 
   let results: Awaited<ReturnType<typeof searchAllProviders>> | null = null;
   let searchError: string | null = null;
+  const user = await getCurrentUser();
 
   if (parsed?.success) {
     const d = parsed.data;
     try {
-      results = await searchAllProviders({
-        checkIn: d.checkIn,
-        checkOut: d.checkOut,
-        occupancy: { adults: d.adults, childAges: Array.from({ length: d.children }, () => 8) },
-        rooms: d.rooms,
-        countryCode: d.country || undefined,
-        city: d.city || undefined,
-        query: d.q || undefined,
-      });
+      results = await searchAllProviders(
+        {
+          checkIn: d.checkIn,
+          checkOut: d.checkOut,
+          occupancy: { adults: d.adults, childAges: Array.from({ length: d.children }, () => 8) },
+          rooms: d.rooms,
+          countryCode: d.country || undefined,
+          city: d.city || undefined,
+          query: d.q || undefined,
+        },
+        user?.agency?.id,
+      );
     } catch (error) {
       // A failed search must never render as "no hotels available".
       searchError = error instanceof Error ? error.message : String(error);
@@ -248,10 +253,20 @@ export default async function AgentSearchPage({
                           {formatNumber(hotel.starRating, locale)}
                         </span>
                       ) : null}
-                      {/* An external result says so — an agent should know
-                          whether they are looking at our own contracted stock. */}
-                      {hotel.supplierKey !== "internal" ? (
-                        <Badge tone="warning">{t("externalSupplier")}</Badge>
+                      {/* Multi-supplier Aggregation & Comparison (Hotels B2B Hub §6.2) */}
+                      {hotel.supplierComparison && hotel.supplierComparison.length > 1 ? (
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          <Badge tone="success">
+                            {t("multiSupplierCount", { count: hotel.supplierComparison.length })}
+                          </Badge>
+                          {hotel.lowestSupplierKey ? (
+                            <span className="text-2xs font-normal text-ink-muted">
+                              {t("bestPriceFrom", { supplier: hotel.lowestSupplierKey })}
+                            </span>
+                          ) : null}
+                        </span>
+                      ) : hotel.supplierKey !== "internal" ? (
+                        <Badge tone="warning">{hotel.supplierKey}</Badge>
                       ) : null}
                     </span>
                   }
@@ -284,6 +299,11 @@ export default async function AgentSearchPage({
                           <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-ink">
                             <LuBedDouble className="size-4 shrink-0 text-ink-subtle" aria-hidden />
                             {locale === "ar" ? offer.roomNameAr : offer.roomNameEn}
+                            {offer.supplierKey && offer.supplierKey !== "internal" ? (
+                              <span className="rounded border border-border bg-surface-raised px-1.5 py-0.5 text-2xs font-normal text-ink-muted">
+                                {offer.supplierKey}
+                              </span>
+                            ) : null}
                           </p>
                           <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
                             <span className="flex items-center gap-1">

@@ -11,17 +11,22 @@ import {
   LuBus,
   LuMapPinned,
   LuUsers,
+  LuCode,
 } from "react-icons/lu";
 import { Link, usePathname } from "@/shared/i18n/navigation";
 import { cn } from "@/shared/lib/cn";
 
 /**
- * Agent portal navigation.
+ * Agent portal navigation (CLAUDE.md §13, Phase 1).
  *
- * Every agent sees the same sections — unlike the back-office nav there
- * is no per-permission filtering, because an agency's sub-user permissions are
- * managed by the agent_owner and none of these pages is gated on one yet
- * (CLAUDE.md §7). The pages behind them are still scoped by RLS to the
+ * Scoped to the sections an agency user needs to run their business. A user
+ * without `agency_users.manage` will see the team tab disabled; that is
+ * handled at the page rather than here so the navigation layout stays stable
+ * between users.
+ *
+ * Everything here reads from `/agent/*` and has no access to the back-office
+ * routes under `/admin/*`. Visibility across the agency's data is enforced by
+ * RLS — there are no query filters here because RLS already limits rows to the
  * caller's own agency.
  */
 
@@ -35,6 +40,7 @@ const SECTIONS = [
   "statement",
   "team",
   "profile",
+  "developer",
 ] as const;
 type Section = (typeof SECTIONS)[number];
 
@@ -48,6 +54,7 @@ const HREF: Record<Section, string> = {
   statement: "/agent/statement",
   team: "/agent/team",
   profile: "/agent/profile",
+  developer: "/agent/developer",
 };
 
 /** Section icon, kept out of the SECTIONS table so that stays plain data. */
@@ -60,6 +67,7 @@ function SectionIcon({ section }: { section: Section }) {
   if (section === "bookings") return <LuCalendarClock className="size-4 shrink-0" aria-hidden />;
   if (section === "statement") return <LuReceipt className="size-4 shrink-0" aria-hidden />;
   if (section === "team") return <LuUsers className="size-4 shrink-0" aria-hidden />;
+  if (section === "developer") return <LuCode className="size-4 shrink-0" aria-hidden />;
   return <LuBuilding2 className="size-4 shrink-0" aria-hidden />;
 }
 

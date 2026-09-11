@@ -23,6 +23,7 @@ type ConfirmOptions = {
   destructive?: boolean;
   /** Writing direction of the surrounding page, so the dialog matches it. */
   dir?: "rtl" | "ltr";
+  icon?: "warning" | "question" | "info" | "success";
 };
 
 export async function confirmAction({
@@ -32,12 +33,16 @@ export async function confirmAction({
   cancelLabel,
   destructive = true,
   dir = "ltr",
+  icon,
 }: ConfirmOptions): Promise<boolean> {
+  const resolvedIcon = icon ?? (destructive ? "warning" : "question");
   const result = await Swal.fire({
     title,
     text: body,
-    icon: destructive ? "warning" : "question",
-    iconColor: destructive ? "oklch(0.672 0.152 65)" : "oklch(0.522 0.176 257)",
+    icon: resolvedIcon,
+    iconColor: destructive
+      ? "var(--color-danger-600, #dc2626)"
+      : "var(--color-brand-600, #008080)",
     showCancelButton: true,
     confirmButtonText: confirmLabel,
     cancelButtonText: cancelLabel,
@@ -46,8 +51,15 @@ export async function confirmAction({
     reverseButtons: dir === "rtl",
     buttonsStyling: false,
     customClass: {
-      confirmButton: destructive ? "swal2-confirm swal-confirm-danger" : "swal2-confirm",
-      cancelButton: "swal2-cancel",
+      popup: "swal2-custom-popup !rounded-2xl !p-6 !shadow-raised !border !border-border !bg-surface",
+      title: "swal2-custom-title !text-lg !font-bold !text-ink !pt-1 !leading-snug",
+      htmlContainer: "swal2-custom-html !text-sm !text-ink-muted !mt-2 !mb-4 !leading-relaxed",
+      actions: "swal2-custom-actions !flex !items-center !justify-center !gap-3 !w-full !mt-3",
+      confirmButton: destructive
+        ? "swal2-confirm swal-confirm-danger !inline-flex !items-center !justify-center !h-9 !px-4 !text-sm !font-medium !rounded-control !bg-danger-600 !text-white hover:!bg-danger-700 active:!bg-danger-800 !shadow-sm !transition-colors !cursor-pointer !border-0"
+        : "swal2-confirm !inline-flex !items-center !justify-center !h-9 !px-4 !text-sm !font-medium !rounded-control !bg-brand-600 !text-white hover:!bg-brand-700 active:!bg-brand-800 !shadow-sm !transition-colors !cursor-pointer !border-0",
+      cancelButton:
+        "swal2-cancel !inline-flex !items-center !justify-center !h-9 !px-4 !text-sm !font-medium !rounded-control !bg-surface !text-ink !border !border-border hover:!bg-surface-hover active:!bg-neutral-200 !shadow-xs !transition-colors !cursor-pointer",
     },
     didOpen: (popup) => {
       popup.setAttribute("dir", dir);

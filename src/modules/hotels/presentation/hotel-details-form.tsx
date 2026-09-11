@@ -191,7 +191,7 @@ export function CreateHotelButton({ locale }: { locale: Locale }) {
           className="space-y-4"
         >
           <DetailFields />
-          <div className="flex justify-end gap-2 border-t border-border pt-4">
+          <div className="sticky bottom-0 z-10 -mx-5 -mb-4 mt-4 flex justify-end gap-2 border-t border-border bg-surface px-5 py-3 shadow-sm">
             <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
               {tCommon("cancel")}
             </Button>
