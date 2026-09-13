@@ -2264,7 +2264,7 @@
     "uploadCardDescription": "Select an Excel (.xlsx, .xls) or CSV file containing room contract rates and allotments.",
     "downloadTemplate": "Download Template (Excel / CSV)",
     "dragOrSelectFile": "Drag and drop your file here, or browse from your computer",
-    "supportedFormats": "Supports .xlsx, .xls, and .csv (Max 10 MB)",
+    "supportedFormats": "Supports .xlsx, .xls, and .csv (max 5 MB, 2,000 rows)",
     "selectFileButton": "Select File",
     "parseSuccessTitle": "File parsed successfully",
     "parseSuccessDesc": "Parsed {total} rows ({valid} valid rows ready for import)",
@@ -2273,6 +2273,16 @@
     "previewTitle": "Data Preview & Validation",
     "previewStats": "Total: {total} rows | Valid: {valid} | Errors: {errors}",
     "confirmImportButton": "Confirm & Import {count} Rates",
+    "importRowErrorsTitle": "{count} rows were not imported",
+    "errors": {
+      "noFileProvided": "Choose a file to upload.",
+      "unsupportedFormat": "Only .xlsx, .xls and .csv files are accepted.",
+      "fileTooLarge": "The file is larger than 5 MB.",
+      "tooManyRows": "The file has more than 2,000 rows. Split it and upload each part.",
+      "parseFailed": "The file could not be read. Check that it is a valid spreadsheet.",
+      "noValidRows": "There are no valid rows to import.",
+      "commitFailed": "The import could not be completed."
+    },
     "cols": {
       "row": "#",
       "status": "Status",
@@ -2339,7 +2349,7 @@
     "endpointsReferenceDesc": "Browse all available B2B endpoints with copyable cURL examples for instant testing.",
     "docs": {
       "searchSummary": "Search Available Hotels & Rates",
-      "searchDesc": "Query aggregated live availability across internal stock and external Bedbanks with agency markup.",
+      "searchDesc": "Query live availability across contracted inventory and any supplier enabled for your agency, at your agency's prices.",
       "hotelDetailSummary": "Get Hotel Content & Details",
       "hotelDetailDesc": "Fetch property description, images, room types, and check-in/out policies.",
       "createBookingSummary": "Create Programmatic Booking",

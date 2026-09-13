@@ -20,7 +20,6 @@ import { searchAllProviders } from "@/modules/hotels/infrastructure/providers/re
 import { listOpenQuotations } from "@/modules/bookings/infrastructure/quotations.repository";
 import { SaveOfferButton } from "@/modules/bookings/presentation/save-offer-button";
 import { BookRoomButton } from "@/modules/bookings/presentation/book-room-button";
-import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
 
 /** ISO date `days` from today, UTC. */
 function isoOffset(days: number): string {
@@ -89,7 +88,6 @@ export default async function AgentSearchPage({
 
   let results: Awaited<ReturnType<typeof searchAllProviders>> | null = null;
   let searchError: string | null = null;
-  const user = await getCurrentUser();
 
   if (parsed?.success) {
     const d = parsed.data;
@@ -104,7 +102,8 @@ export default async function AgentSearchPage({
           city: d.city || undefined,
           query: d.q || undefined,
         },
-        user?.agency?.id,
+        // Session context: the database resolves this agent's own agency, markup
+        // and supplier preferences — nothing here names an agency.
       );
     } catch (error) {
       // A failed search must never render as "no hotels available".

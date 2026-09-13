@@ -28,6 +28,12 @@ export default async function AgentLayout({
   if (user.status !== "active") redirect(`/${locale}/pending`);
   if (user.role.scope !== "agent") redirect(`/${locale}${landingPathFor(user)}`);
 
+  // An agency member added from "Team" (or by the back-office) gets a temporary
+  // password the person who created the account has seen — the same situation
+  // as a staff or driver account (§15, 3.4), so the same rule applies. This
+  // check was missing here: the screen promised a forced change that never came.
+  if (user.mustChangePassword) redirect(`/${locale}/change-password`);
+
   const t = await getTranslations();
   const roleName = locale === "ar" ? user.role.nameAr : user.role.nameEn;
 

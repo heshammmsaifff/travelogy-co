@@ -6,7 +6,7 @@ B2B travel booking platform — an agent portal and a back-office, bilingual (Ar
 
 ## Status
 
-**Phase 0 (Foundation & tooling) — complete.** No product features yet; Phase 1 designs the database schema and auth.
+**Phases 0–8 complete.** Phases 9 (supplier aggregation, static rate upload) and 10 (buyer REST API) are built for our own inventory; no live external bedbank adapter exists yet. See `CLAUDE.md` §13 and the decision log in §15 for the exact state.
 
 ## Getting started
 

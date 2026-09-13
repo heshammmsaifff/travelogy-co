@@ -62,6 +62,10 @@ export type AuthenticatedUser = {
  */
 export function can(user: AuthenticatedUser | null, permission: string): boolean {
   if (!user || user.status !== "active") return false;
+  // Mirrors has_permission(): an account still on a temporary password holds no
+  // permissions. This matters most for use-cases that check `can()` and then
+  // write with the service role, where the database never sees the caller.
+  if (user.mustChangePassword) return false;
   if (user.role.key === "super_admin") return true;
   return user.permissions.includes(permission);
 }
@@ -76,6 +80,9 @@ export function can(user: AuthenticatedUser | null, permission: string): boolean
  */
 export function landingPathFor(user: AuthenticatedUser): string {
   if (user.status !== "active") return "/pending";
+  // Before any portal, whatever the scope: an account still on a temporary
+  // password someone else has seen must replace it first.
+  if (user.mustChangePassword) return "/change-password";
   if (user.role.scope === "admin") return "/admin";
   if (user.role.scope === "driver") return "/driver";
   return "/agent";

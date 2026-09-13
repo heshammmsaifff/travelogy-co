@@ -8,11 +8,13 @@ import { AuthShell } from "@/modules/auth/presentation/auth-shell";
 import { ChangePasswordForm } from "@/modules/auth/presentation/auth-forms";
 
 /**
- * Forced password change for an account created by an admin.
+ * Forced password change for an account created by someone else.
  *
- * The admin generated and saw the temporary password, so the account is not
- * genuinely private until the user replaces it. The back-office layout sends
- * them here and will keep doing so until `must_change_password` is cleared.
+ * Staff (created in the back-office), drivers (created by fleet), and agency
+ * members (created by their agency owner or the back-office) all start on a
+ * temporary password the creator saw, so none is genuinely private until the
+ * user replaces it. Every portal layout, the documents layout and
+ * `landingPathFor` send them here until `must_change_password` is cleared.
  */
 export default async function ChangePasswordPage({
   params,

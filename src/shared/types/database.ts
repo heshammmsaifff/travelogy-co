@@ -507,6 +507,7 @@ export type Database = {
           check_in: string
           check_out: string
           children: number
+          client_reference: string | null
           completed_at: string | null
           confirmed_at: string | null
           confirmed_by: string | null
@@ -543,6 +544,7 @@ export type Database = {
           check_in: string
           check_out: string
           children?: number
+          client_reference?: string | null
           completed_at?: string | null
           confirmed_at?: string | null
           confirmed_by?: string | null
@@ -579,6 +581,7 @@ export type Database = {
           check_in?: string
           check_out?: string
           children?: number
+          client_reference?: string | null
           completed_at?: string | null
           confirmed_at?: string | null
           confirmed_by?: string | null
@@ -3332,7 +3335,7 @@ export type Database = {
       create_b2b_api_booking: {
         Args: {
           p_adults: number
-          p_agency_id: string
+          p_api_key_id: string
           p_check_in: string
           p_check_out: string
           p_children: number
@@ -3367,6 +3370,33 @@ export type Database = {
           p_quotation_id?: string
           p_rate_plan_id: string
           p_requests?: string
+          p_room_type_id: string
+          p_rooms: number
+        }
+        Returns: {
+          booking_id: string
+          currency_code: string
+          reference: string
+          total_sell: number
+        }[]
+      }
+      create_hotel_booking_for: {
+        Args: {
+          p_actor_id: string
+          p_adults: number
+          p_agency_id: string
+          p_api_key_id: string
+          p_check_in: string
+          p_check_out: string
+          p_children: number
+          p_client_reference: string
+          p_guest_email: string
+          p_guest_name: string
+          p_guest_phone: string
+          p_promo_code: string
+          p_quotation_id: string
+          p_rate_plan_id: string
+          p_requests: string
           p_room_type_id: string
           p_rooms: number
         }
@@ -3661,6 +3691,46 @@ export type Database = {
       search_availability: {
         Args: {
           p_adults?: number
+          p_check_in: string
+          p_check_out: string
+          p_children?: number
+          p_city?: string
+          p_country?: string
+          p_query?: string
+          p_rooms?: number
+        }
+        Returns: {
+          city_ar: string
+          city_en: string
+          country_code: string
+          cover_url: string
+          currency_code: string
+          hotel_code: string
+          hotel_id: string
+          is_refundable: boolean
+          max_occupancy: number
+          meal_plan_key: string
+          name_ar: string
+          name_en: string
+          nights: number
+          plan_name_ar: string
+          plan_name_en: string
+          property_type: Database["public"]["Enums"]["property_type"]
+          rate_plan_id: string
+          room_code: string
+          room_name_ar: string
+          room_name_en: string
+          room_type_id: string
+          rooms_available: number
+          sell_per_night: number
+          sell_total: number
+          star_rating: number
+        }[]
+      }
+      search_availability_for: {
+        Args: {
+          p_adults?: number
+          p_agency_id: string
           p_check_in: string
           p_check_out: string
           p_children?: number

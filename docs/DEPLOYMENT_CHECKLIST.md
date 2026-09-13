@@ -33,17 +33,14 @@ CLOUDINARY_CLOUD_NAME=[cloud_name]
 CLOUDINARY_API_KEY=[api_key]
 CLOUDINARY_API_SECRET=[api_secret]
 
-# 4. Optional External Supplier Credentials (Stored in Supabase Vault or Env)
-HOTELBEDS_API_KEY=...
-HOTELBEDS_SECRET=...
-WEBBEDS_USERNAME=...
-WEBBEDS_PASSWORD=...
-TBO_USERNAME=...
-TBO_PASSWORD=...
-
-# 5. Transactional Email Provider (Optional Resend fallback)
-RESEND_API_KEY=...
 ```
+
+> **مفاتيح الموردين الخارجيين ليست متغيرات بيئة.** يدخلها الـ super_admin من لوحة التحكم
+> (الإعدادات ← الموردون) وتُخزَّن مشفّرة في Supabase Vault (CLAUDE.md §9). لا تضف
+> `HOTELBEDS_*` أو ما يشابهها إلى الاستضافة.
+>
+> **البريد الإلكتروني:** رسائل التسجيل واستعادة كلمة المرور تمر عبر SMTP المخصص في Supabase (البند 1).
+> إرسال القسائم بالبريد لم يُبنَ بعد (مرحلة 11).
 
 ---
 

@@ -58,14 +58,14 @@ export function ApiDocsViewer({
       path: "/api/v1/b2b/bookings/{idOrRef}",
       summary: t("docs.getBookingSummary"),
       description: t("docs.getBookingDesc"),
-      curl: `curl -X GET "https://travelogy.co/api/v1/b2b/bookings/LLT-2026-0001" \\\n  -H "X-API-Key: ${samplePrefix}" \\\n  -H "Accept: application/json"`,
+      curl: `curl -X GET "https://travelogy.co/api/v1/b2b/bookings/LLT-B-000123" \\\n  -H "X-API-Key: ${samplePrefix}" \\\n  -H "Accept: application/json"`,
     },
     {
       method: "POST",
       path: "/api/v1/b2b/bookings/{idOrRef}/cancel",
       summary: t("docs.cancelBookingSummary"),
       description: t("docs.cancelBookingDesc"),
-      curl: `curl -X POST "https://travelogy.co/api/v1/b2b/bookings/LLT-2026-0001/cancel" \\\n  -H "X-API-Key: ${samplePrefix}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"reason": "Client cancelled"}'`,
+      curl: `curl -X POST "https://travelogy.co/api/v1/b2b/bookings/LLT-B-000123/cancel" \\\n  -H "X-API-Key: ${samplePrefix}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"reason": "Client cancelled"}'`,
     },
     {
       method: "GET",

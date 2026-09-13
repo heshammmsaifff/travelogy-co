@@ -1,7 +1,10 @@
 import { type NextRequest } from "next/server";
 import { authenticateB2BRequest } from "@/modules/b2b-api/infrastructure/api-auth.guard";
 import { b2bError, b2bSuccess } from "@/modules/b2b-api/infrastructure/api-response";
-import { getB2BAgencyBalance } from "@/modules/b2b-api/infrastructure/b2b-bookings.service";
+import {
+  B2BApiError,
+  getB2BAgencyBalance,
+} from "@/modules/b2b-api/infrastructure/b2b-bookings.service";
 
 export async function GET(request: NextRequest) {
   const auth = await authenticateB2BRequest(request);
@@ -13,10 +16,13 @@ export async function GET(request: NextRequest) {
     const balance = await getB2BAgencyBalance(auth.context.agencyId);
     return b2bSuccess(balance, { context: auth.context });
   } catch (err) {
-    return b2bError(
-      "BALANCE_FAILED",
-      err instanceof Error ? err.message : "Failed to retrieve account balance.",
-      { status: 500, context: auth.context },
-    );
+    if (err instanceof B2BApiError) {
+      return b2bError(err.code, err.message, { status: err.status, context: auth.context });
+    }
+    console.error("[b2b-api] GET /account/balance:", err);
+    return b2bError("BALANCE_FAILED", "The account balance could not be retrieved.", {
+      status: 500,
+      context: auth.context,
+    });
   }
 }

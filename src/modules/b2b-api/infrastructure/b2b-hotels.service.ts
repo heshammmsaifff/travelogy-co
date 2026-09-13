@@ -2,6 +2,7 @@ import "server-only";
 
 import { searchAllProviders } from "@/modules/hotels/infrastructure/providers/registry";
 import { createServiceRoleClient } from "@/shared/lib/supabase/server";
+import { B2BApiError } from "./b2b-bookings.service";
 
 export type B2BSearchParams = {
   checkIn: string;
@@ -14,8 +15,16 @@ export type B2BSearchParams = {
   query?: string;
 };
 
+/**
+ * Searches on behalf of the agency that owns the API key.
+ *
+ * Runs in the registry's `api` context: prices carry THAT agency's markup and
+ * only suppliers enabled for it take part. Supplier failures are reported as
+ * partial results rather than dropped, because a buyer system that receives
+ * fewer hotels than exist cannot tell that apart from "sold out" (§15, 7.6).
+ */
 export async function searchB2BHotels(params: B2BSearchParams, agencyId: string) {
-  const searchOutput = await searchAllProviders(
+  const { results, failures } = await searchAllProviders(
     {
       checkIn: params.checkIn,
       checkOut: params.checkOut,
@@ -28,10 +37,16 @@ export async function searchB2BHotels(params: B2BSearchParams, agencyId: string)
       countryCode: params.countryCode,
       query: params.query,
     },
-    agencyId,
+    { kind: "api", agencyId },
   );
 
-  return searchOutput.results.map((hotel) => ({
+  // Our own inventory failing with nothing else answering is an outage, not an
+  // empty result set.
+  if (results.length === 0 && failures.some((f) => f.supplierKey === "internal")) {
+    throw new B2BApiError("SEARCH_FAILED", 500, "Hotel search failed. Please retry.");
+  }
+
+  const hotels = results.map((hotel) => ({
     id: hotel.canonicalHotelId ?? hotel.hotelRef,
     code: hotel.hotelRef,
     name: {
@@ -54,6 +69,9 @@ export async function searchB2BHotels(params: B2BSearchParams, agencyId: string)
       roomTypeId: offer.roomRef,
       ratePlanId: offer.ratePlanRef,
       offerId: offer.offerRef,
+      // Only our own inventory can be booked through POST /bookings today;
+      // an external offer's ids are the supplier's, not ours.
+      bookable: (offer.supplierKey ?? hotel.supplierKey) === "internal",
       roomName: {
         ar: offer.roomNameAr,
         en: offer.roomNameEn,
@@ -68,19 +86,26 @@ export async function searchB2BHotels(params: B2BSearchParams, agencyId: string)
       nights: offer.nights,
       pricing: {
         currency: offer.currencyCode,
-        sellTotal: offer.sellTotal * params.rooms,
+        // The port prices ONE room; the buyer asked for `rooms` of them. Tax
+        // and any promo code are applied at booking, so the booking total can
+        // differ from this figure — documented in the OpenAPI spec.
+        sellTotal: Math.round(offer.sellTotal * params.rooms * 100) / 100,
         sellPerNight: offer.sellPerNight,
         roomsBooked: params.rooms,
       },
       supplierKey: offer.supplierKey,
     })),
   }));
+
+  return {
+    hotels,
+    unavailableSuppliers: failures.map((f) => f.supplierKey),
+  };
 }
 
 export async function getB2BHotelDetails(hotelIdOrCode: string) {
   const supabase = createServiceRoleClient();
 
-  // Try lookup by id or code
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
     hotelIdOrCode,
   );
@@ -94,7 +119,7 @@ export async function getB2BHotelDetails(hotelIdOrCode: string) {
       latitude, longitude, description_ar, description_en,
       check_in_time, check_out_time,
       hotel_images(id, secure_url, sort_order, is_cover, alt_ar, alt_en),
-      room_types(id, code, name_ar, name_en, max_occupancy, standard_occupancy)
+      room_types(id, code, name_ar, name_en, max_occupancy, standard_occupancy, status)
     `,
     )
     .eq("status", "active");
@@ -103,9 +128,11 @@ export async function getB2BHotelDetails(hotelIdOrCode: string) {
     ? await query.eq("id", hotelIdOrCode).maybeSingle()
     : await query.eq("code", hotelIdOrCode.toUpperCase()).maybeSingle();
 
-  if (error || !hotel) {
-    return null;
+  if (error) {
+    console.error("[b2b-api] hotel read failed:", error.message);
+    throw new B2BApiError("FETCH_FAILED", 500, "Hotel details could not be retrieved.");
   }
+  if (!hotel) return null;
 
   return {
     id: hotel.id,
@@ -127,7 +154,7 @@ export async function getB2BHotelDetails(hotelIdOrCode: string) {
         en: hotel.address_en,
       },
       coordinates:
-        hotel.latitude && hotel.longitude
+        hotel.latitude !== null && hotel.longitude !== null
           ? {
               latitude: Number(hotel.latitude),
               longitude: Number(hotel.longitude),
@@ -153,15 +180,18 @@ export async function getB2BHotelDetails(hotelIdOrCode: string) {
           en: img.alt_en,
         },
       })),
-    rooms: (hotel.room_types ?? []).map((r) => ({
-      id: r.id,
-      code: r.code,
-      name: {
-        ar: r.name_ar,
-        en: r.name_en,
-      },
-      baseOccupancy: r.standard_occupancy,
-      maxOccupancy: r.max_occupancy,
-    })),
+    // An inactive room type is not something a buyer can be offered.
+    rooms: (hotel.room_types ?? [])
+      .filter((r) => r.status === "active")
+      .map((r) => ({
+        id: r.id,
+        code: r.code,
+        name: {
+          ar: r.name_ar,
+          en: r.name_en,
+        },
+        baseOccupancy: r.standard_occupancy,
+        maxOccupancy: r.max_occupancy,
+      })),
   };
 }

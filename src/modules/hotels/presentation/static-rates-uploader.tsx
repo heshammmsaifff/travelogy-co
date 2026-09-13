@@ -34,11 +34,18 @@ function generateSampleStaticRatesCsv(): string {
 export function StaticRatesUploader({ locale: _locale }: { locale: Locale }) {
   const t = useTranslations("staticRates");
   const tCommon = useTranslations("common");
+  // Action error keys are fully qualified ("staticRates.errors.x"), so they are
+  // resolved against the ROOT translator — a namespaced one would print the key
+  // path instead of the message (§15, Phase 8a).
+  const tRoot = useTranslations();
 
   const [isPending, startTransition] = useTransition();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<ParseResult | null>(null);
-  const [importedSummary, setImportedSummary] = useState<{ count: number } | null>(null);
+  const [importedSummary, setImportedSummary] = useState<{
+    count: number;
+    errors: string[];
+  } | null>(null);
 
   const handleDownloadTemplate = () => {
     const csvContent = generateSampleStaticRatesCsv();
@@ -77,7 +84,7 @@ export function StaticRatesUploader({ locale: _locale }: { locale: Locale }) {
         } else {
           toast.error({
             title: tCommon("errors.unexpected"),
-            description: res.detail,
+            description: res.detail ?? tRoot(res.errorKey),
           });
         }
       });
@@ -90,19 +97,24 @@ export function StaticRatesUploader({ locale: _locale }: { locale: Locale }) {
     if (validRows.length === 0) return;
 
     startTransition(async () => {
-      const res = await commitStaticRatesAction(validRows);
+      // Only the row number and values go back; the server re-validates them.
+      const res = await commitStaticRatesAction(
+        validRows.map((r) => ({ rowNumber: r.rowNumber, data: r.data })),
+      );
       if (res.ok) {
-        setImportedSummary({ count: res.importedCount });
+        setImportedSummary({ count: res.importedCount, errors: res.errors });
         setPreviewData(null);
         setSelectedFile(null);
-        toast.success({
+        // Some rows refused by the database is not a clean success, and must
+        // not be announced as one.
+        (res.errors.length > 0 ? toast.warning : toast.success)({
           title: t("importCompleteTitle"),
           description: t("importCompleteDesc", { count: res.importedCount }),
         });
       } else {
         toast.error({
           title: tCommon("errors.unexpected"),
-          description: res.detail,
+          description: res.detail ?? tRoot(res.errorKey),
         });
       }
     });
@@ -152,11 +164,25 @@ export function StaticRatesUploader({ locale: _locale }: { locale: Locale }) {
 
       {/* Success Banner */}
       {importedSummary ? (
-        <div className="flex items-center gap-3 rounded-card border border-success-200 bg-success-50 p-4 text-success-800 dark:border-success-800 dark:bg-success-950/30 dark:text-success-200">
-          <LuCircleCheck className="size-5 shrink-0" aria-hidden />
-          <p className="text-sm font-medium">
-            {t("importCompleteDesc", { count: importedSummary.count })}
-          </p>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 rounded-card border border-success-200 bg-success-50 p-4 text-success-800 dark:border-success-800 dark:bg-success-950/30 dark:text-success-200">
+            <LuCircleCheck className="size-5 shrink-0" aria-hidden />
+            <p className="text-sm font-medium">
+              {t("importCompleteDesc", { count: importedSummary.count })}
+            </p>
+          </div>
+          {importedSummary.errors.length > 0 ? (
+            <div className="rounded-card border border-danger-200 bg-danger-50 p-4 text-danger-800 dark:border-danger-900 dark:bg-danger-950/30 dark:text-danger-200">
+              <p className="text-sm font-medium">
+                {t("importRowErrorsTitle", { count: importedSummary.errors.length })}
+              </p>
+              <ul className="mt-2 list-disc space-y-1 ps-5 text-xs" dir="ltr">
+                {importedSummary.errors.map((e) => (
+                  <li key={e}>{e}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

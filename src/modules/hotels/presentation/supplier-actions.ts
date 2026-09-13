@@ -101,6 +101,12 @@ export async function setSupplierEnabledAction(
     return FORBIDDEN;
   }
 
+  // The screen disables the button, but a form is a suggestion (§12). A
+  // supplier with no adapter in code can only fail every search it joins.
+  if (isEnabled && !getProvider(providerKey)) {
+    return { ok: false, errorKey: "suppliers.errors.noAdapter" };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("supplier_integrations")

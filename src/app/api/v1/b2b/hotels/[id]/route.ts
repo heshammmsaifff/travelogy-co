@@ -1,6 +1,7 @@
 import { type NextRequest } from "next/server";
 import { authenticateB2BRequest } from "@/modules/b2b-api/infrastructure/api-auth.guard";
 import { b2bError, b2bSuccess } from "@/modules/b2b-api/infrastructure/api-response";
+import { B2BApiError } from "@/modules/b2b-api/infrastructure/b2b-bookings.service";
 import { getB2BHotelDetails } from "@/modules/b2b-api/infrastructure/b2b-hotels.service";
 
 export async function GET(
@@ -23,7 +24,7 @@ export async function GET(
   try {
     const hotel = await getB2BHotelDetails(id);
     if (!hotel) {
-      return b2bError("HOTEL_NOT_FOUND", `Hotel '${id}' was not found.`, {
+      return b2bError("HOTEL_NOT_FOUND", "Hotel not found.", {
         status: 404,
         context: auth.context,
       });
@@ -31,10 +32,13 @@ export async function GET(
 
     return b2bSuccess(hotel, { context: auth.context });
   } catch (err) {
-    return b2bError(
-      "FETCH_FAILED",
-      err instanceof Error ? err.message : "Failed to retrieve hotel details.",
-      { status: 500, context: auth.context },
-    );
+    if (err instanceof B2BApiError) {
+      return b2bError(err.code, err.message, { status: err.status, context: auth.context });
+    }
+    console.error("[b2b-api] GET /hotels/:id:", err);
+    return b2bError("FETCH_FAILED", "Hotel details could not be retrieved.", {
+      status: 500,
+      context: auth.context,
+    });
   }
 }

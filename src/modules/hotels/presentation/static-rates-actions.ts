@@ -1,13 +1,18 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
 import { can } from "@/modules/auth/domain/user";
 import {
-  parseAndValidateStaticRates,
+  MAX_STATIC_RATE_FILE_BYTES,
+  MAX_STATIC_RATE_ROWS,
+} from "@/modules/hotels/application/static-rate-row";
+import {
+  TooManyRowsError,
   commitStaticRatesImport,
+  parseAndValidateStaticRates,
   type ParseResult,
-  type RowValidationResult,
 } from "@/modules/hotels/application/import-static-rates.service";
 
 export type UploadResult =
@@ -18,6 +23,15 @@ export type CommitResult =
   | { ok: true; importedCount: number; errors: string[] }
   | { ok: false; errorKey: string; detail?: string };
 
+const ALLOWED_EXTENSIONS = /\.(csv|xlsx|xls)$/i;
+
+// Only the row number and the row's own values travel back from the browser.
+// Everything derived from them — validity, ids — is recomputed on the server.
+const submittedRowsSchema = z
+  .array(z.object({ rowNumber: z.number().int().min(1), data: z.unknown() }))
+  .min(1)
+  .max(MAX_STATIC_RATE_ROWS);
+
 export async function uploadAndPreviewStaticRatesAction(
   formData: FormData,
 ): Promise<UploadResult> {
@@ -26,46 +40,49 @@ export async function uploadAndPreviewStaticRatesAction(
     return { ok: false, errorKey: "access.errors.forbidden" };
   }
 
-  const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) {
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
     return { ok: false, errorKey: "staticRates.errors.noFileProvided" };
+  }
+  if (!ALLOWED_EXTENSIONS.test(file.name)) {
+    return { ok: false, errorKey: "staticRates.errors.unsupportedFormat" };
+  }
+  // Checked before the bytes are read: the spreadsheet parser is the most
+  // expensive thing an upload can make the server do.
+  if (file.size > MAX_STATIC_RATE_FILE_BYTES) {
+    return { ok: false, errorKey: "staticRates.errors.fileTooLarge" };
   }
 
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const result = await parseAndValidateStaticRates(buffer);
-    return { ok: true, data: result };
+    const buffer = Buffer.from(await file.arrayBuffer());
+    return { ok: true, data: await parseAndValidateStaticRates(buffer) };
   } catch (err) {
-    return {
-      ok: false,
-      errorKey: "staticRates.errors.parseFailed",
-      detail: err instanceof Error ? err.message : String(err),
-    };
+    if (err instanceof TooManyRowsError) {
+      return { ok: false, errorKey: "staticRates.errors.tooManyRows" };
+    }
+    console.error("[static-rates] parse failed:", err);
+    return { ok: false, errorKey: "staticRates.errors.parseFailed" };
   }
 }
 
-export async function commitStaticRatesAction(
-  validRows: RowValidationResult[],
-): Promise<CommitResult> {
+export async function commitStaticRatesAction(rows: unknown): Promise<CommitResult> {
   const user = await getCurrentUser();
   if (!can(user, "hotels.rates.update")) {
     return { ok: false, errorKey: "access.errors.forbidden" };
   }
 
-  if (validRows.length === 0) {
+  const parsed = submittedRowsSchema.safeParse(rows);
+  if (!parsed.success) {
     return { ok: false, errorKey: "staticRates.errors.noValidRows" };
   }
 
   try {
-    const outcome = await commitStaticRatesImport(validRows, user!.id);
+    const outcome = await commitStaticRatesImport(parsed.data, user!.id);
     revalidatePath("/[locale]/admin/hotels", "page");
+    revalidatePath("/[locale]/admin/hotels/[id]/rates", "page");
     return { ok: true, importedCount: outcome.importedCount, errors: outcome.errors };
   } catch (err) {
-    return {
-      ok: false,
-      errorKey: "staticRates.errors.commitFailed",
-      detail: err instanceof Error ? err.message : String(err),
-    };
+    console.error("[static-rates] commit failed:", err);
+    return { ok: false, errorKey: "staticRates.errors.commitFailed" };
   }
 }

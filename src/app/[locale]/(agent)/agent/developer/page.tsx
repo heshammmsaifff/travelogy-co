@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { forbidden, notFound } from "next/navigation";
 import { isLocale } from "@/shared/i18n/config";
+import { can } from "@/modules/auth/domain/user";
 import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
 import { listAgencyApiKeys } from "@/modules/b2b-api/presentation/api-key-actions";
 import { ApiKeysManager } from "@/modules/b2b-api/presentation/api-keys-manager";
@@ -38,7 +39,8 @@ export default async function AgentDeveloperPage({
         agencyId={user.agency.id}
         initialKeys={keys}
         locale={locale}
-        canManage={user.role.key === "agent_owner"}
+        // Permission, never a role name (§7): an owner can grant this to a sub-user.
+        canManage={can(user, "agency_users.manage")}
       />
 
       <ApiDocsViewer samplePrefix={samplePrefix} />

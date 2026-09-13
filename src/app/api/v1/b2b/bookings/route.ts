@@ -2,6 +2,7 @@ import { type NextRequest } from "next/server";
 import { authenticateB2BRequest } from "@/modules/b2b-api/infrastructure/api-auth.guard";
 import { b2bError, b2bSuccess } from "@/modules/b2b-api/infrastructure/api-response";
 import {
+  B2BApiError,
   b2bBookingPayloadSchema,
   createB2BReservation,
 } from "@/modules/b2b-api/infrastructure/b2b-bookings.service";
@@ -39,23 +40,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const booking = await createB2BReservation(parsed.data, auth.context.agencyId);
+    // The key id, not the agency id: the database resolves the agency from it.
+    const booking = await createB2BReservation(parsed.data, auth.context.keyId);
     return b2bSuccess(booking, {
       status: 201,
       context: auth.context,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Failed to create booking.";
-    let status = 400;
-
-    if (msg.includes("Credit limit exceeded")) {
-      status = 402;
-    } else if (msg.includes("allotment unavailable") || msg.includes("no longer available")) {
-      status = 409;
+    if (err instanceof B2BApiError) {
+      return b2bError(err.code, err.message, { status: err.status, context: auth.context });
     }
-
-    return b2bError("BOOKING_REJECTED", msg, {
-      status,
+    console.error("[b2b-api] POST /bookings:", err);
+    return b2bError("BOOKING_FAILED", "The booking could not be created.", {
+      status: 500,
       context: auth.context,
     });
   }

@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/shared/lib/supabase/server";
 import { clientEnv } from "@/shared/lib/env";
+import { resolveClientIp } from "@/shared/lib/client-ip";
 import { rateLimit, type RateLimitResult } from "@/shared/lib/rate-limit";
 import type { Locale } from "@/shared/i18n/config";
 import {
@@ -48,16 +49,11 @@ async function guard(
   prefix: string,
   options: { limit: number; windowMs: number },
 ): Promise<RateLimitResult> {
-  const h = await headers();
-  const ip =
-    h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    h.get("x-real-ip")?.trim() ||
-    h.get("cf-connecting-ip")?.trim() ||
-    null;
+  const ip = resolveClientIp(await headers());
 
   if (!ip) {
     if (process.env.NODE_ENV !== "production") {
-      return { allowed: true, retryAfterSeconds: 0 };
+      return { allowed: true, retryAfterSeconds: 0, remaining: options.limit };
     }
     return rateLimit(`${prefix}:no-ip`, options);
   }
@@ -300,14 +296,24 @@ export async function changePasswordAction(
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) return { ok: false, errorKey: "auth.errors.passwordUpdateFailed" };
 
-  // Clearing the flag grants nothing, so the profile guard permits the user to
-  // update it on their own row.
-  const { error: flagError } = await supabase
+  // The flag is NOT cleared here. The database refuses that from any signed-in
+  // user — letting the account holder clear it was a way to skip the change
+  // entirely — and a trigger on auth.users clears it the moment the password
+  // hash actually changes. Read it back so a missing trigger fails loudly
+  // instead of redirecting the user straight back to this screen.
+  const { data: profile, error: readError } = await supabase
     .from("profiles")
-    .update({ must_change_password: false })
-    .eq("id", user.id);
+    .select("must_change_password")
+    .eq("id", user.id)
+    .single();
 
-  if (flagError) return { ok: false, errorKey: "auth.errors.passwordUpdateFailed" };
+  if (readError || !profile || profile.must_change_password) {
+    console.error(
+      "[auth] password changed but must_change_password is still set:",
+      readError?.message ?? "flag not cleared by trigger",
+    );
+    return { ok: false, errorKey: "auth.errors.passwordUpdateFailed" };
+  }
 
   redirect(`/${locale}/redirect`);
 }

@@ -27,9 +27,16 @@ export default async function RedirectPage({
 
   if (!user) redirect(`/${locale}/login`);
 
-  // Only same-origin absolute paths are honoured, and only for an active user.
+  // Only same-origin absolute paths are honoured, and only for an active user
+  // who is not still on a temporary password — `landingPathFor` sends that user
+  // to change it first, and a `next` must not route around that.
   // A `next` that begins with `//` is a protocol-relative URL to another host.
-  if (user.status === "active" && next?.startsWith("/") && !next.startsWith("//")) {
+  if (
+    user.status === "active" &&
+    !user.mustChangePassword &&
+    next?.startsWith("/") &&
+    !next.startsWith("//")
+  ) {
     redirect(next);
   }
 

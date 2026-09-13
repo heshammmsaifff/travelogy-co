@@ -2,6 +2,7 @@ import { type NextRequest } from "next/server";
 import { z } from "zod";
 import { authenticateB2BRequest } from "@/modules/b2b-api/infrastructure/api-auth.guard";
 import { b2bError, b2bSuccess } from "@/modules/b2b-api/infrastructure/api-response";
+import { B2BApiError } from "@/modules/b2b-api/infrastructure/b2b-bookings.service";
 import { searchB2BHotels } from "@/modules/b2b-api/infrastructure/b2b-hotels.service";
 
 const searchParamsSchema = z.object({
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const hotels = await searchB2BHotels(
+    const { hotels, unavailableSuppliers } = await searchB2BHotels(
       {
         checkIn: data.checkIn,
         checkOut: data.checkOut,
@@ -75,13 +76,19 @@ export async function GET(request: NextRequest) {
       meta: {
         totalHotels: hotels.length,
         criteria: data,
+        // True when a supplier failed to answer: fewer hotels than exist, not "sold out".
+        partialResults: unavailableSuppliers.length > 0,
+        unavailableSuppliers,
       },
     });
   } catch (err) {
-    return b2bError(
-      "SEARCH_FAILED",
-      err instanceof Error ? err.message : "Hotel search failed unexpectedly.",
-      { status: 500, context: auth.context },
-    );
+    if (err instanceof B2BApiError) {
+      return b2bError(err.code, err.message, { status: err.status, context: auth.context });
+    }
+    console.error("[b2b-api] GET /hotels/search:", err);
+    return b2bError("SEARCH_FAILED", "Hotel search failed. Please retry.", {
+      status: 500,
+      context: auth.context,
+    });
   }
 }

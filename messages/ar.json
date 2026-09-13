@@ -2264,7 +2264,7 @@
     "uploadCardDescription": "اختر ملف Excel (.xlsx, .xls) أو CSV يحتوي على أسعار وعقود الغرف.",
     "downloadTemplate": "تحميل نموذج Excel / CSV",
     "dragOrSelectFile": "اسحب الملف وأفلته هنا، أو اختر من جهازك",
-    "supportedFormats": "يدعم .xlsx و .xls و .csv (حجم أقصى 10 ميجابايت)",
+    "supportedFormats": "يدعم .xlsx و .xls و .csv (حجم أقصى 5 ميجابايت و2,000 صف)",
     "selectFileButton": "اختيار ملف",
     "parseSuccessTitle": "تمت معالجة الملف بنجاح",
     "parseSuccessDesc": "تم فحص {total} صفًا ({valid} صف صالح للاستيراد)",
@@ -2273,6 +2273,16 @@
     "previewTitle": "معاينة البيانات والتحقق من الصحة",
     "previewStats": "الإجمالي: {total} صف | صالح: {valid} | يحتاج تصحيح: {errors}",
     "confirmImportButton": "تأكيد واستيراد {count} سعر تعاقدي",
+    "importRowErrorsTitle": "صفوف لم يتم استيرادها: {count}",
+    "errors": {
+      "noFileProvided": "اختر ملفًا لرفعه.",
+      "unsupportedFormat": "الملفات المقبولة: .xlsx و .xls و .csv فقط.",
+      "fileTooLarge": "حجم الملف أكبر من 5 ميجابايت.",
+      "tooManyRows": "الملف يحتوي على أكثر من 2,000 صف. قسّمه وارفع كل جزء على حدة.",
+      "parseFailed": "تعذّرت قراءة الملف. تأكد أنه جدول بيانات صالح.",
+      "noValidRows": "لا توجد صفوف صالحة للاستيراد.",
+      "commitFailed": "تعذّر إكمال الاستيراد."
+    },
     "cols": {
       "row": "#",
       "status": "الحالة",
@@ -2339,7 +2349,7 @@
     "endpointsReferenceDesc": "قائمة نقاط النهاية المتاحة لوكالتك مع أمثلة أوامر cURL للاختبار الفوري.",
     "docs": {
       "searchSummary": "البحث عن الفنادق والغرف المتاحة والأسعار",
-      "searchDesc": "بحث فوري ومجمع عبر المخزون الداخلي وبنوك الغرف الخارجية مع تطبيق هوامش ربح وكالتك.",
+      "searchDesc": "بحث فوري في المخزون التعاقدي وأي مورد مفعّل لوكالتك، بأسعار وكالتك.",
       "hotelDetailSummary": "تفاصيل وبيانات الفندق والمرافق",
       "hotelDetailDesc": "استرجاع الموقع والوصف والصور والسياسات الخاصة بالفندق.",
       "createBookingSummary": "إنشاء وحجز الغرف برمجياً",

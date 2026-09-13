@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import type { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/shared/lib/supabase/server";
 import { rateLimit } from "@/shared/lib/rate-limit";
+import { resolveClientIp } from "@/shared/lib/client-ip";
 import { b2bError } from "./api-response";
 
 export type AuthenticatedB2BContext = {
@@ -15,7 +16,8 @@ export type AuthenticatedB2BContext = {
   rateLimit: number;
   remainingRequests: number;
   resetSeconds: number;
-  clientIp: string;
+  /** Null on a direct connection with no proxy header (e.g. `next dev`). */
+  clientIp: string | null;
 };
 
 export type AuthResult =
@@ -23,7 +25,8 @@ export type AuthResult =
   | { ok: false; response: NextResponse };
 
 /**
- * Computes SHA-256 hash of plaintext API key.
+ * Computes SHA-256 hash of plaintext API key. Only the hash is stored, so a
+ * database read never yields a usable key.
  */
 export function hashApiKey(key: string): string {
   return crypto.createHash("sha256").update(key.trim()).digest("hex");
@@ -31,7 +34,7 @@ export function hashApiKey(key: string): string {
 
 /**
  * Generates a cryptographically secure B2B API key.
- * Format: `llt_live_` + 32 hex characters.
+ * Format: `llt_live_` + 32 hex characters (128 bits of entropy).
  */
 export function generateApiKey(): { rawKey: string; keyPrefix: string; keyHash: string } {
   const randomBytes = crypto.randomBytes(16).toString("hex");
@@ -42,15 +45,22 @@ export function generateApiKey(): { rawKey: string; keyPrefix: string; keyHash: 
   return { rawKey, keyPrefix, keyHash };
 }
 
+const invalidKey = () =>
+  b2bError("INVALID_API_KEY", "Invalid, expired, or inactive API key.", { status: 401 });
+
 /**
  * Guards B2B API routes:
- * 1. Checks X-API-Key or Authorization Bearer header.
- * 2. Authenticates key against database with SHA-256 hash.
- * 3. Enforces optional IP whitelist.
- * 4. Enforces per-agency rate limits (HTTP 429).
+ * 1. Reads the key from X-API-Key or `Authorization: Bearer`.
+ * 2. Authenticates its SHA-256 hash against the database.
+ * 3. Refuses a key whose agency is not active.
+ * 4. Enforces the key's IP allow-list, failing CLOSED when no address is known.
+ * 5. Enforces the key's per-minute rate limit (HTTP 429).
+ *
+ * The context it returns carries the key id; the booking RPC resolves the
+ * agency from that id inside the database, so nothing downstream can charge a
+ * different agency than the one the key belongs to.
  */
 export async function authenticateB2BRequest(request: NextRequest): Promise<AuthResult> {
-  // Extract token from header
   let token = request.headers.get("x-api-key");
   if (!token) {
     const authHeader = request.headers.get("authorization");
@@ -68,31 +78,25 @@ export async function authenticateB2BRequest(request: NextRequest): Promise<Auth
     };
   }
 
-  const tokenHash = hashApiKey(token);
   const supabase = createServiceRoleClient();
-
   const { data: authRows, error } = await supabase.rpc("authenticate_b2b_api_key", {
-    p_key_hash: tokenHash,
+    p_key_hash: hashApiKey(token),
   });
 
-  if (error || !authRows || authRows.length === 0) {
+  if (error) {
+    // A database failure is not an invalid key, and the caller should not be
+    // told to go and check their key when the fault is ours.
+    console.error("[b2b-api] authenticate_b2b_api_key failed:", error.message);
     return {
       ok: false,
-      response: b2bError("INVALID_API_KEY", "Invalid, expired, or inactive API key.", {
-        status: 401,
+      response: b2bError("AUTH_UNAVAILABLE", "Authentication is temporarily unavailable.", {
+        status: 503,
       }),
     };
   }
 
-  const row = authRows[0];
-  if (!row) {
-    return {
-      ok: false,
-      response: b2bError("INVALID_API_KEY", "Invalid, expired, or inactive API key.", {
-        status: 401,
-      }),
-    };
-  }
+  const row = authRows?.[0];
+  if (!row) return { ok: false, response: invalidKey() };
 
   if (row.agency_status !== "active") {
     return {
@@ -103,27 +107,22 @@ export async function authenticateB2BRequest(request: NextRequest): Promise<Auth
     };
   }
 
-  // Extract client IP
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  const clientIp = forwardedFor ? forwardedFor.split(",")[0]?.trim() || "unknown" : "127.0.0.1";
+  const clientIp = resolveClientIp(request.headers);
 
-  // IP whitelist check
   if (row.allowed_ips && row.allowed_ips.length > 0) {
-    const isAllowed = row.allowed_ips.some((ip: string) => ip.trim() === clientIp);
+    const isAllowed = clientIp !== null && row.allowed_ips.some((ip) => ip.trim() === clientIp);
     if (!isAllowed) {
       return {
         ok: false,
-        response: b2bError("IP_NOT_ALLOWED", `Client IP '${clientIp}' is not authorized.`, {
+        response: b2bError("IP_NOT_ALLOWED", "This client address is not on the key's allow-list.", {
           status: 403,
         }),
       };
     }
   }
 
-  // Rate Limiting
   const limit = row.rate_limit || 60;
-  const rlKey = `b2b:${row.key_id}`;
-  const rlResult = rateLimit(rlKey, { limit, windowMs: 60_000 });
+  const rl = rateLimit(`b2b:${row.key_id}`, { limit, windowMs: 60_000 });
 
   const context: AuthenticatedB2BContext = {
     keyId: row.key_id,
@@ -132,12 +131,12 @@ export async function authenticateB2BRequest(request: NextRequest): Promise<Auth
     agencyCode: row.agency_code,
     agencyStatus: row.agency_status,
     rateLimit: limit,
-    remainingRequests: rlResult.allowed ? Math.max(0, limit - 1) : 0,
-    resetSeconds: rlResult.retryAfterSeconds,
+    remainingRequests: rl.remaining,
+    resetSeconds: rl.retryAfterSeconds,
     clientIp,
   };
 
-  if (!rlResult.allowed) {
+  if (!rl.allowed) {
     return {
       ok: false,
       response: b2bError("RATE_LIMIT_EXCEEDED", "Request quota exceeded. Please slow down.", {

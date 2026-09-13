@@ -1083,3 +1083,166 @@ Requested by the client to unify `Hotels B2B Hub.pdf` (SRS v1.0) and `Project Pr
 | 20.4 | **Hardening, Testing & Launch sequenced as Phase 11.** | Accommodating the Buyer REST API as a dedicated, fully tested phase before launch hardening. Phasing sequence: 9 phases completed (Phases 0 through 8), and 3 remaining phases (Phases 9, 10, 11). |
 | 20.5 | **Reaffirm zero payment gateway policy.** | Although payment gateways were mentioned in the proposal and noted as an open decision in the SRS, the platform's core architectural principle of strictly using credit accounts, balance tracking, and ledger-based reconciliation (§10) is reaffirmed and maintained. |
 
+### Phase 9/10 review fixes — decided 2026-09-13
+
+Phases 9 and 10 arrived in one commit with no decision-log entry and no
+verification run. Reading them against the schema, then running a live suite
+(41 checks, fixtures created and removed), found the problems below. Fixed in
+migrations `20260913100000` and `20260913100100` plus application code.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 21.1 | **One hotel booking implementation: `create_hotel_booking_for(agency, actor, …)`.** `create_booking` (portal) and `create_b2b_api_booking` (API) are thin wrappers that differ only in how they establish WHO is booking. Search likewise: `search_availability_for(agency, …)` behind `search_availability`. | The API booking function was a second hand-written copy, and it could never succeed: it re-priced through `search_availability()`, which refuses a caller with no session; wrote six columns that do not exist; called `offer_net_total` with swapped and missing arguments; and called two functions no migration defines. `db push` accepted it because plpgsql bodies are not resolved until run. §15 (7.3) — one source of truth — is the rule this broke. |
+| 21.2 | **`create_b2b_api_booking` takes the API key id, resolves the agency inside the database, and is service-role only.** | The old one was granted to `authenticated` and took `p_agency_id` from the caller: once its column bugs were fixed, any signed-in agent could have booked against any agency's credit. Passing the key rather than the agency means not even a route-handler bug can name a different agency to charge. |
+| 21.3 | **Hotel booking credit is checked against `agency_balance()`** (after recorded payments), not `agency_outstanding()`. | §15 (11.2) decided this in Phase 5b, but `create_booking` never switched, so an agency that had paid its account in full was still refused as if it had paid nothing. Packages (8c) already used the balance. **Transfers still use `agency_outstanding` — open follow-up.** |
+| 21.4 | **`bookings.client_reference`, unique per agency.** A retried API request with the same value is refused as `DUPLICATE_CLIENT_REFERENCE` *before* any inventory is held. | System-to-system clients retry on timeouts; without an idempotency key a retry is a second booking and a second charge. |
+| 21.5 | **`agency_api_keys` is read-only through PostgREST.** Writes go only through server actions that check `agency_users.manage` (own agency) or `agencies.update`, and every create/enable/disable/delete is audited. | The old policies called `has_permission()` (breaking the Phase 4 standing rule) and let any member of an agency insert a key directly, bypassing the owner check. That owner check compared `role.key === "agent_owner"` and `role.scope === "admin"`, which §7 forbids — any back-office user could manage any agency's keys. |
+| 21.6 | **The six external "adapters" (Hotelbeds, WebBeds, TBO, itrip, Within Earth, RateHawk) were deleted and their rows disabled.** The rows stay so credentials can be stored ahead of time; the suppliers screen shows "no adapter in code", and enabling is refused server-side as well as in the UI. | Once any credential was saved they generated invented hotels ("Hotelbeds Partner Hotel 3") with invented prices, and their connection test reported "Handshake ready" without contacting anything — exactly what §2.3 prohibits. A real adapter needs a supplier contract and sandbox credentials to build and test against; **ask the client for them (§2.6), don't simulate.** The sandbox supplier (§15, 7.7) stays: it says what it is. |
+| 21.7 | **The registry takes an explicit context: `session` (portal) or `api` (key's agency, service role).** The database ignores an agency id supplied by an agent. Supplier failures reach the API as `meta.partialResults`. | API search used the cookie client and had no session, so it returned nothing. `enabled_supplier_keys_for_agency` also honoured any agency id, letting an agent read another agency's supplier preferences. |
+| 21.8 | **Agents cannot read `hotel_supplier_mappings`.** Deduplication reads them server-side, filtered to the refs in the result set. | Which supplier holds a property is hidden from agents (§15, 9.4); the old policy was `using (true)`, and the engine loaded the entire table on every search (§11). |
+| 21.9 | **An IP allow-list fails CLOSED when no client address can be resolved.** One shared `resolveClientIp()` now serves the API guard and the auth rate limiter. | The guard substituted `127.0.0.1` for a missing header, so an allow-list containing that address matched requests of unknown origin. |
+| 21.10 | **Static rate import re-validates on commit, server-side.** Allotment and rate plan are required; the currency must match the rate plan's (blank means "the plan's"); an allotment of 0 stays 0; only `allotment` is written to allocations; limits of 5 MB, 2,000 rows and 366 nights per row. | The commit trusted `isValid` and the resolved ids from the browser (§12). `raw.allotment \|\| 5` turned every stop-sell 0 into 5 uncontracted rooms; a blank plan became `RO` and a blank currency `SAR`, so a USD figure could be stored into an SAR plan; the upsert reset stop-sell flags an admin had set by hand; and every row got an invented `max_stay` of 30. |
+| 21.11 | **API errors are mapped by SQLSTATE to stable codes** (`CREDIT_LIMIT_EXCEEDED` 402, `OFFER_UNAVAILABLE` / `DUPLICATE_CLIENT_REFERENCE` 409, `PROMO_CODE_REJECTED` 422 …). Anything unmapped is a generic 500 with the detail logged. Voucher/invoice URLs were removed from API responses. | Matching on message substrings breaks when a message is reworded, and raw database messages were returned to partners. The document URLs needed a portal session and a locale prefix, so a partner could never open one. |
+| 21.12 | **The email service reports `success: false` when no provider is configured.** | It logged the message to the console and returned success — a fake success waiting for its first caller. Nothing calls it yet; Phase 11 owns email. |
+
+**The bug only running it could find.** `authenticate_b2b_api_key` tested
+`if v_rec is not null`. On a record, `IS NOT NULL` is true only when *every*
+field is non-null, and `allowed_ips` is null by default — so **every API key
+without an IP allow-list was rejected as invalid** from the day Phase 10
+shipped. The review had read that function and passed it. The suite exposed it
+because the one key that authenticated was the IP-restricted one. **Standing
+rule: after `SELECT … INTO` in plpgsql, test `FOUND`, never `record IS [NOT] NULL`.**
+
+**Also found:** the `staticRates.errors.*` keys the upload screen used did not
+exist in either catalogue, so every upload error showed a raw key path.
+
+**Not verified, and why:**
+- *21.3 with a recorded payment.* Payments are immutable (§15, 11.3), so a test
+  payment would leave a fixture agency behind permanently. The change swaps one
+  function call for the one packages already use.
+- *The supplier screen, developer page and rate upload in a browser.* They need a
+  signed-in admin or agent, and signing in with a password was not done from the
+  automated browser. The upload's parsing rules are unit-tested (10 tests); its
+  database path was exercised only by type-checking and the build.
+- *The IP allow-list trusts `x-forwarded-for`.* Correct behind Vercel, which sets
+  the header itself; spoofable on a host that passes client headers through.
+  Revisit in Phase 11 alongside the shared rate-limit store.
+
+**Open follow-ups:** ~~transfer bookings' credit rule (21.3)~~ and ~~`xlsx@0.18.5`
+advisories~~ — both closed the same day, below.
+
+### Transfer credit, xlsx, and the unverified items — decided 2026-09-13
+
+| # | Decision | Rationale |
+|---|---|---|
+| 22.1 | **`create_transfer_booking` checks credit against `agency_balance()`** (migration `20260913110000`). Body otherwise identical to Phase 8a; same signature, grants and error code. | The last product still on `agency_outstanding()`: an agency that had paid in full was refused a transfer as if it had paid nothing (§15, 11.2 and 21.3). All three products now apply one rule. |
+| 22.2 | **`xlsx` is installed from SheetJS's own CDN, pinned: `https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz`.** `npm audit` went from 1 high to 0. | The npm-registry package stopped at 0.18.5 and is unmaintained; CVE-2023-30533 (prototype pollution when *reading* a crafted file, fixed 0.19.3) and CVE-2024-22363 (ReDoS, fixed 0.20.2) both apply to exactly what the rate upload does. SheetJS publishes fixes only on its CDN — the advisories themselves point there. Pinned to a version rather than `xlsx-latest`, because a moving URL changes under the lockfile's integrity hash and breaks `npm ci` on the next deploy. **When upgrading, change the version in the URL; do not `npm install xlsx`, which reinstalls the vulnerable registry copy.** |
+
+**How "credit after a payment" was finally verified — and the technique worth
+reusing.** Payments are immutable (§15, 11.3), which is why 21.3 went untested:
+any test payment would leave a fixture agency in the database forever.
+`npx supabase db query --linked -f <file>` runs a whole SQL file in one session,
+so a file that opens with `begin;` and ends with `rollback;` can create a user,
+agency, hotel, route and rates, act as the agent (`set local role
+authenticated` plus `request.jwt.claims`), book, record a real payment, book
+again — and leave nothing. Confirmed first with a probe row that existed inside
+the transaction and not after it, and afterwards by counting fixtures (all 0).
+The only trace is gaps in reference sequences, which any failed insert leaves.
+
+Run **before** the migration it reproduced the bug exactly: transfer #3 refused
+with `balance=0.00 outstanding=1150.00`. Run after, all 8 checks passed — both
+products, plus `balance = outstanding − payments`. **Use this pattern for any
+test that would otherwise need an immutable fixture.**
+
+**The static rate upload's database path is now verified too**, by running the
+real service (parse → validate → commit) against the dev database with only
+`server-only` stubbed: CSV and a generated `.xlsx` both parse; a tampered commit
+(a refused USD row sent back as valid) imports nothing; valid rows land with the
+right half-open period, `min_stay` and a null `max_stay`; an allotment of 0 stays
+0; a hand-set stop-sell survives; an overlap is reported as a readable row error.
+Its only residue is two `hotel.static_rates_imported` audit rows, which is the
+audit trail doing its job. The test lives outside the repo — Phase 11's
+Playwright/integration suite is where a permanent one belongs.
+
+**Still not verified:** the suppliers, developer and rate-upload *screens* in a
+browser. They need a signed-in back-office or agent session, and the automated
+browser does not sign in with a password. Everything behind those screens is now
+exercised; what remains is rendering, both locales, and the click paths.
+
+### Agency members' temporary password — fixed 2026-09-13
+
+Found while writing the user guide, by reading the layouts rather than the
+screen copy. An agency member added from **Team** (or from an agency's page in
+the back-office) is created with a temporary password and
+`must_change_password = true`, and the dialog tells the creator the member will
+have to replace it at first sign-in. Only the back-office and driver layouts
+enforced that. **The agent layout never checked the flag**, so an agency member
+could keep using a password their owner had seen, indefinitely — the screen
+promised a control that did not exist (§2.3).
+
+| # | Decision | Rationale |
+|---|---|---|
+| 23.1 | **The agent layout redirects to `/change-password` when `mustChangePassword` is set**, exactly as the admin and driver layouts do. | Same situation as a staff or driver account (§15, 3.4 and 16.x): the creator saw the credential, so the account is not private until it is replaced. |
+| 23.2 | **`landingPathFor` returns `/change-password` for any scope while the flag is set** (after the inactive → `/pending` rule). | It is the single place that knows where a person belongs (§15, 16.x). Putting the rule there means the post-login router and every "wrong portal" bounce apply it too, instead of each layout having to remember — the same shape as the bug itself, where two of three layouts remembered. Unit-tested for all three scopes. |
+| 23.3 | **The post-login router ignores `?next=` while the flag is set.** | Otherwise a deep link captured before sign-in would route around the forced change. |
+| 23.4 | **The documents layout applies the rule too.** | Vouchers and invoices sit outside every portal layout (§15, 12.4), so without it a document link was a way to use the account before its password was private. `getCurrentUser` is `cache()`d per request, so the check adds no query the page does not already make. |
+
+**~~Still a UI guard~~ — closed the same day in the database, below (24.x).**
+
+**Verified live** (12 checks, real `@supabase/ssr` sessions against `next dev`,
+fixtures removed): a flagged member is sent to `/change-password` from the
+portal root, an inner page, the post-login router with `?next=`, and a document
+link; the change-password form renders for them without a loop; the owner (no
+flag) is unaffected; the member can set a new password and clear their own flag
+with their own session — which is what `changePasswordAction` does — after
+which the portal renders and the old temporary password no longer signs in.
+
+**A testing trap worth recording.** The first run asserted redirects by HTTP
+status and failed six checks — including one for a redirect that predates this
+fix. When a layout calls `redirect()` after Next.js has started streaming, the
+response is already **200**; the redirect travels inside the body as
+`<meta id="__next-page-redirect" http-equiv="refresh">` and `NEXT_REDIRECT;…` in
+the RSC payload. So "status 200" means neither "rendered" nor "redirected". The
+suite now treats a page as rendered only when it is a 200 with **no** redirect of
+any kind, and runs a control (the unflagged owner) first to prove the detector
+can tell the two apart. **When checking a redirect in App Router over HTTP,
+read the body, not just the status.**
+
+### Temporary passwords enforced in the database — decided 2026-09-13
+
+Requested by the client after 23.x, which enforced the flag in layouts only.
+Migration `20260913120000`.
+
+| # | Decision | Rationale |
+|---|---|---|
+| 24.1 | **`is_active_user()` and `has_permission()` return false while `must_change_password` is set.** | Every RLS policy and every RPC in the schema already goes through one of the two (verified by an audit query over `pg_policies` and `pg_proc`, not by reading migrations). Teaching those two about the flag made the whole database refuse a flagged account at once — the same move as §15 (3.1), where agency status was taught to the same two functions. A flagged super admin holds no permissions either. |
+| 24.2 | **The read-only helpers are deliberately NOT gated**: `current_agency_id()`, `current_role_id()`, `can_read_own_agency()`, and self-row reads of `profiles`, `roles`, `role_permissions`. | A flagged user must still load their own profile, role and agency so the app can show them the change-password screen — exactly as a pending user must be shown the pending screen. Every policy granting real data pairs these helpers with a gated resolver. Verified: the flagged member reads their own profile and role, and nothing of their colleagues'. |
+| 24.3 | **`drivers_self_read` and `driver_assignments_self_read` now also require `is_active_user()`.** | They were the only data policies deciding on `auth.uid()` alone, so a flagged driver — and, as a side effect now also closed, a suspended one — could read their own job list directly through PostgREST. |
+| 24.4 | **Only the system may change `must_change_password`.** The profile guard refuses any change to it from a signed-in user, before the super-admin short-circuit. | **This was a real bypass, not a theoretical one.** `profiles_update` lets a user update their own row and the guard never looked at this column, so a flagged user could set it to false without changing anything. The 23.x verification run even contained a PASS for "member can clear their own flag" — it was checking the app's clearing step and was in fact proving the hole. |
+| 24.5 | **A trigger on `auth.users` clears the flag when `encrypted_password` genuinely changes** — and only then. | The flag's meaning is "the password is not yet private", so it should end at the one event that makes it private, whichever path produces it: the forced change screen or the email recovery flow. Account creation INSERTs the row, so the trigger never fires there. Verified that an unrelated `auth.users` update (metadata) leaves the flag set. |
+| 24.6 | **`changePasswordAction` no longer writes the flag; it reads it back after `updateUser` and fails loudly if the trigger did not clear it.** | Its write would now be refused (24.4). Reading back means a missing trigger surfaces as an error rather than as a user bounced back to the same screen forever. |
+| 24.7 | **`can()` returns false for a flagged user**, mirroring `has_permission()`. `canViewKeys` gets the same check. | Several use-cases check `can()` and then write with the service role (staff, drivers, agency members, API keys, static rates, supplier tests), where the database never sees the caller. Without this the app-level half of §7 rule 2 would still have honoured a flagged account. |
+
+**Verified live** (26 checks, real sessions, every refusal asserting its reason
+and paired with a control on an unflagged owner so no refusal can be vacuous):
+the service role can still set the flag; neither the member nor their agency
+owner can clear it; a flagged member's `search_availability` and `create_booking`
+are refused as *Not permitted* while the owner's pass the gate; the member sees
+only their own profile row and no API keys while the owner sees both; the
+change-password screen still renders; after `updateUser` the trigger clears the
+flag and every refused read and RPC works again; a metadata-only update does not
+clear it; the old password no longer signs in. The policy and trigger
+definitions were also read back from `pg_policies` and `pg_trigger`, which is
+what covers the driver policies (no driver fixture was built). Regression: the
+Phase 9/10 suite and the rolled-back credit test were re-run against the new
+resolvers.
+
+**Before this migration 0 accounts carried the flag**, so the change locked no
+existing user out.
+
+**The lesson, and it is the §15 (5a) lesson again from a new direction:** a
+*positive* check can be as vacuous as a negative one. "The user can clear their
+own flag" read like a successful step of the happy path, so nobody asked whether
+it should have been possible at all. **When a test grants a user a capability,
+ask whether they should have it before recording the PASS.**
+
